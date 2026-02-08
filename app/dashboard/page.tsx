@@ -15,7 +15,8 @@ import {
     Users,
     Eye,
     Activity,
-    Zap
+    Zap,
+    Video
 } from "lucide-react";
 
 // --- Types ---
@@ -31,7 +32,7 @@ interface ChannelData {
 
 interface MergedChannel extends ChannelData {
     id: string; // Channel ID
-    realtime: { m60: number; h48: number };
+    realtime: { h48: number; error?: string }; // Added error field
     isExpired: boolean;
     emailSource: string;
 }
@@ -81,37 +82,85 @@ export default function Dashboard() {
 
     // --- Core Sync Logic ---
     const fetchRealtimeStats = async (channelId: string) => {
-        if (!gApiInited || !window.gapi?.client?.youtubeAnalytics) return { m60: 0, h48: 0 };
+        if (!gApiInited || !window.gapi?.client?.youtubeAnalytics) return { h48: 0 };
 
         try {
+            // According to YouTube Analytics API docs/user finding:
+            // "For real-time data, startDate and endDate are not required or should be set 
+            // to a recent date to get the live/realtime feed."
+            // However, the API *technically* requires startDate/endDate parameters for reports.query.
+            // We'll set them to today/yesterday to satisfy the API shape, but rely on 'liveOrOnDemand'
+
             const now = new Date();
-            const start = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            const end = now.toISOString().split('T')[0];
+            const today = now.toISOString().split('T')[0];
+            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-            let res = await window.gapi.client.youtubeAnalytics.reports.query({
-                ids: `channel==${channelId}`,
-                startDate: start, endDate: end,
-                metrics: "views", dimensions: "hour", sort: "-hour"
-            });
+            let views48h = 0;
 
-            let rows = res.result.rows || [];
-            if (rows.length > 0) {
-                const last24hRows = rows.slice(0, 24);
-                const total24h = last24hRows.reduce((acc: any, row: any) => acc + row[1], 0);
-                return { m60: Math.floor(total24h / 24), h48: total24h }; // Approximation
+            try {
+                // Primary Method: 'liveOrOnDemand' dimension
+                const res = await window.gapi.client.youtubeAnalytics.reports.query({
+                    ids: `channel==${channelId}`,
+                    startDate: threeDaysAgo, // Broad range to catch all recent realtime data
+                    endDate: today,
+                    metrics: "views",
+                    dimensions: "liveOrOnDemand"
+                    // sort: "-views" // Optional
+                });
+
+                const rows = res.result.rows || [];
+                // Sum all rows returned (usually splits by live vs onDemand)
+                views48h = rows.reduce((acc: number, row: any) => acc + (row[1] || 0), 0);
+
+                console.log(`[Realtime 48h] ${channelId}: ${views48h}`);
+
+                // Log success
+                if (views48h > 0) {
+                    fetch('/api/log', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            message: `✅ Realtime 48h for ${channelId}: ${views48h}`,
+                            type: 'info'
+                        })
+                    }).catch(() => { });
+                }
+
+            } catch (err: any) {
+                const errMsg = err?.result?.error?.message || err.message || "Unknown error";
+                console.warn(`Realtime 48h fetch failed for ${channelId}: ${errMsg}`);
+
+                fetch('/api/log', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message: `⚠️ Realtime 48h Error for ${channelId}: ${errMsg}`,
+                        type: 'warn'
+                    })
+                }).catch(() => { });
+
+                // Fallback: Standard daily query (proxied)
+                try {
+                    const resFallback = await window.gapi.client.youtubeAnalytics.reports.query({
+                        ids: `channel==${channelId}`,
+                        startDate: threeDaysAgo,
+                        endDate: today,
+                        metrics: "views"
+                    });
+
+                    // Estimate 48h from last ~3 days of data
+                    const totalRecent = resFallback.result.rows?.[0]?.[0] || 0;
+                    views48h = Math.floor((totalRecent / 3) * 2);
+
+                } catch (fallbackErr) {
+                    console.error("Fallback failed", fallbackErr);
+                }
             }
 
-            // Fallback
-            res = await window.gapi.client.youtubeAnalytics.reports.query({
-                ids: `channel==${channelId}`,
-                startDate: start, endDate: end,
-                metrics: "views"
-            });
+            return { h48: views48h };
 
-            let totalFallback = (res.result.rows && res.result.rows[0]) ? res.result.rows[0][0] : 0;
-            return { m60: Math.floor(totalFallback / 72), h48: Math.floor(totalFallback / 3) };
-        } catch (e) {
-            return { m60: 0, h48: 0 };
+        } catch (e: any) {
+            console.error("Critical Realtime Error " + channelId, e);
+            const errorMsg = e?.result?.error?.message || e.message || "Unknown error";
+            return { h48: 0, error: errorMsg };
         }
     };
 
@@ -167,7 +216,7 @@ export default function Dashboard() {
                     mergedData.push({
                         ...acc,
                         id: acc.gmail, // Use email as fake ID
-                        realtime: { m60: 0, h48: 0 },
+                        realtime: { h48: 0 },
                         isExpired: true,
                         emailSource: acc.gmail
                     });
@@ -181,6 +230,16 @@ export default function Dashboard() {
 
         } catch (err: any) {
             console.error("Sync Error:", err);
+
+            // Log sync error to server
+            fetch('/api/log', {
+                method: 'POST',
+                body: JSON.stringify({
+                    message: `Sync Error: ${err.message || err}`,
+                    type: 'error'
+                })
+            }).catch(() => { });
+
             setStatus("Database Offline.", false);
         } finally {
             setLoading(false);
@@ -240,7 +299,7 @@ export default function Dashboard() {
 
         gapi.load("client", async () => {
             await gapi.client.init({
-                apiKey: "AIzaSyDNT_iVn2c9kY3M6DQOcODBFNwAs-e_qA4", // Public API Key (From original code)
+                apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY, // Public API Key (From .env)
                 discoveryDocs: [
                     "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest",
                     "https://youtubeanalytics.googleapis.com/$discovery/rest?version=v2"
@@ -365,7 +424,6 @@ export default function Dashboard() {
                                     <th>Channel Name</th>
                                     <th>Subscribers</th>
                                     <th>Total Views</th>
-                                    <th>Realtime 60m</th>
                                     <th>Realtime 48h</th>
                                     <th>Status</th>
                                     <th className="text-center">Action</th>
@@ -387,8 +445,9 @@ export default function Dashboard() {
                                             </td>
                                             <td>{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
                                             <td>{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
-                                            <td className="text-cyan-400 font-bold">{ch.isExpired ? '---' : formatNumber(ch.realtime.m60)}</td>
-                                            <td className="text-yellow-400 font-bold">{ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}</td>
+                                            <td className="text-yellow-400 font-bold" title={ch.realtime.error || "Realtime estimate"}>
+                                                {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
+                                            </td>
                                             <td>
                                                 {ch.isExpired ? (
                                                     <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
@@ -401,9 +460,14 @@ export default function Dashboard() {
                                                 )}
                                             </td>
                                             <td className="text-center">
-                                                <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors">
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors" title="View Videos">
+                                                        <Video size={16} />
+                                                    </Link>
+                                                    <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Remove Channel">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     )
