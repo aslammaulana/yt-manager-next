@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from '@/utils/supabase/client';
 import {
     LayoutDashboard,
     Upload,
@@ -16,7 +17,10 @@ import {
     Eye,
     Activity,
     Zap,
-    Video
+    Video,
+    Copy,
+    ClipboardPaste,
+    Shield
 } from "lucide-react";
 
 // --- Types ---
@@ -50,6 +54,32 @@ export default function Dashboard() {
     const [statusMsg, setStatusMsg] = useState("Initializing...");
     const [isOnline, setIsOnline] = useState(false);
     const [search, setSearch] = useState("");
+
+    // Auth State
+    const supabase = createClient();
+    const [user, setUser] = useState<any>(null);
+    const [role, setRole] = useState<string>("no_access");
+
+    const fetchSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            setUser(session.user);
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+            if (profile) setRole(profile.role);
+        } else {
+            // Middleware should handle this, but double check
+            router.push('/login');
+        }
+    };
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
     const [gApiInited, setGApiInited] = useState(false);
 
     // --- Stats ---
@@ -270,6 +300,45 @@ export default function Dashboard() {
         }
     };
 
+    // --- Copy / Paste Logic ---
+    const [showPasteModal, setShowPasteModal] = useState(false);
+    const [pasteContent, setPasteContent] = useState("");
+
+    const handleCopyData = () => {
+        const dataToCopy = channels.map(ch => ({
+            email: ch.emailSource,
+            access_token: ch.access_token,
+            expires_at: ch.expires_at
+        }));
+        navigator.clipboard.writeText(JSON.stringify(dataToCopy));
+        alert("Data berhasil disalin ke clipboard!");
+    };
+
+    const handlePasteSubmit = async () => {
+        if (!pasteContent) return;
+        try {
+            setLoading(true);
+            const res = await fetch('/api/import-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: pasteContent
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert(`Berhasil mengimpor ${result.count} channel!`);
+                setShowPasteModal(false);
+                setPasteContent("");
+                fetchAllChannelsData(); // Refresh list
+            } else {
+                alert("Gagal impor: " + result.error);
+            }
+        } catch (e: any) {
+            alert("Error: " + e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleManagerOpen = (ch: MergedChannel) => {
         if (ch.isExpired) return;
         // Find matching access token from raw data if needed, but we merged it
@@ -284,6 +353,10 @@ export default function Dashboard() {
     };
 
     // --- Effects ---
+    useEffect(() => {
+        fetchSession();
+    }, []);
+
     useEffect(() => {
         // Initial fetch when GAPI is ready
         if (gApiInited) {
@@ -336,7 +409,12 @@ export default function Dashboard() {
                     <a href="#" className="side-link" onClick={(e) => { e.preventDefault(); googleSignIn(); }}>
                         <Upload size={18} /> Tambah Channel
                     </a>
+                    <a href="/admin" className="side-link active">
+                        <LayoutDashboard size={18} /> Kelola User
+                    </a>
                 </nav>
+
+                
 
                 <div className="side-footer">
                     <div className="hint">
@@ -358,7 +436,15 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 items-center">
+                        {role === 'admin' && (
+                            <Link href="/admin" className="btn ghost text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 px-3 py-1.5 rounded-lg flex items-center gap-2 transition" title="Admin Panel">
+                                <Shield size={16} /> <span className="hidden md:inline">Admin</span>
+                            </Link>
+                        )}
+
+                        <div className="h-6 w-px bg-gray-700 mx-1"></div>
+
                         <div className="search-wrap">
                             <Search size={16} className="text-gray-400" />
                             <input
@@ -369,14 +455,19 @@ export default function Dashboard() {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-                        <button onClick={fetchAllChannelsData} className="btn ghost">
-                            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
+                        <button onClick={fetchAllChannelsData} className="btn ghost" title="Refresh Data">
+                            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
-                        <button onClick={googleSignIn} className="btn primary">
-                            <Upload size={16} /> Add Gmail
+                        <button onClick={googleSignIn} className="btn primary" title="Add another YouTube Account">
+                            <Upload size={16} /> <span className="hidden md:inline">Add Gmail</span>
+                        </button>
+
+                        <button onClick={handleSignOut} className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 p-2 rounded-lg transition" title="Sign Out">
+                            <LogOut size={16} />
                         </button>
                     </div>
                 </div>
+
 
                 {/* STATS CARDS */}
                 <div className="stats-wrapper">
@@ -414,10 +505,19 @@ export default function Dashboard() {
 
                 {/* TABLE */}
                 <div className="panel">
-                    <div className="panel-head">
+                    <div className="panel-head flex justify-between items-center">
                         <div className="panel-title">Channel List</div>
+                        <div className="flex gap-2">
+                            <button onClick={handleCopyData} className="btn ghost sm" title="Salin JSON Channel">
+                                <Copy size={16} /> Salin Data
+                            </button>
+                            <button onClick={() => setShowPasteModal(true)} className="btn ghost sm" title="Tempel JSON Channel">
+                                <ClipboardPaste size={16} /> Tempel Data
+                            </button>
+                        </div>
                     </div>
                     <div className="table-wrap">
+                        {/* ... existing table code ... */}
                         <table className="channel-table">
                             <thead>
                                 <tr>
@@ -431,7 +531,7 @@ export default function Dashboard() {
                             </thead>
                             <tbody>
                                 {loading && (
-                                    <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading data...</td></tr>
+                                    <tr><td colSpan={6} className="text-center py-8 text-gray-500">Loading data...</td></tr>
                                 )}
                                 {!loading && channels.map((ch, idx) => {
                                     if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
@@ -480,8 +580,39 @@ export default function Dashboard() {
                 <div className="footer text-center text-sm">
                     &copy; {new Date().getFullYear()} Bang Memed Project. All rights reserved.
                 </div>
-            </main>
-        </div>
+
+                {/* PASTE MODAL */}
+                {
+                    showPasteModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                            <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-6 w-full max-w-lg shadow-2xl">
+                                <h3 className="text-xl font-bold mb-4 text-white">Tempel Data Channel</h3>
+                                <textarea
+                                    className="w-full h-40 bg-[#0f0f0f] border border-gray-700 rounded-lg p-3 text-sm text-gray-300 focus:outline-none focus:border-cyan-500 transition mb-4"
+                                    placeholder='Paste JSON array here... e.g. [{"email": ...}]'
+                                    value={pasteContent}
+                                    onChange={(e) => setPasteContent(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-3">
+                                    <button
+                                        onClick={() => { setShowPasteModal(false); setPasteContent(""); }}
+                                        className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-800 transition"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={() => { handlePasteSubmit(); setShowPasteModal(false); }}
+                                        className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition"
+                                    >
+                                        Simpan Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            </main >
+        </div >
     );
 }
 

@@ -1,22 +1,29 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from '@/utils/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
     try {
+        const supabase = await createClient();
+
+        // Get Session to confirm auth
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (!user || authError) {
+            console.warn("Unauthorized API Access:", authError);
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // RLS will allow Admins to see all, Editors to see own.
+        // We select * from yt_accounts.
         const { data: accounts, error } = await supabase.from('yt_accounts').select('*');
         if (error) throw error;
 
         const updatedAccounts = await Promise.all(accounts.map(async (acc) => {
             let token = acc.access_token;
-            let expiresAt = acc.expires_at; // Dalam hitungan DETIK
+            let expiresAt = acc.expires_at; // In Seconds
             let nowInSeconds = Math.floor(Date.now() / 1000);
 
-            // FIX: Perbandingan waktu yang benar (Detik vs Detik)
+            // Token Refresh Logic
             if (nowInSeconds >= expiresAt && acc.refresh_token) {
                 try {
                     const response = await fetch("https://oauth2.googleapis.com/token", {
@@ -36,26 +43,28 @@ export async function GET(req: NextRequest) {
                         token = newTokenData.access_token;
                         expiresAt = nowInSeconds + (newTokenData.expires_in || 3600);
 
-                        // Simpan bensin baru ke database
+                        // Update DB with new token
                         await supabase.from('yt_accounts').update({
                             access_token: token,
                             expires_at: expiresAt
                         }).eq('gmail', acc.gmail);
                     }
                 } catch (refreshErr) {
-                    console.error("Gagal Refresh Token untuk: " + acc.gmail);
+                    console.error("Failed Refresh Token for: " + acc.gmail);
                 }
             }
 
-            // Kembalikan data yang dibutuhkan Frontend (Dashboard)
             return {
+                id: acc.id,
                 gmail: acc.gmail,
                 name: acc.name || "Unknown Channel",
                 subs: acc.subs || "0",
                 views: acc.views || "0",
                 thumbnail: acc.thumbnail || "",
-                access_token: token, // Dikirim agar gapi.client.setToken di frontend sukses
-                expires_at: expiresAt
+                access_token: token,
+                expires_at: expiresAt,
+                emailSource: acc.gmail,
+                realtime: acc.realtime || { h48: 0 } // Add realtime property safety
             };
         }));
 
