@@ -413,9 +413,14 @@ export default function Dashboard() {
                     <a href="#" className="side-link" onClick={(e) => { e.preventDefault(); googleSignIn(); }}>
                         <Upload size={18} /> Tambah Channel
                     </a>
-                    <a href="/admin" className="side-link active">
-                        <LayoutDashboard size={18} /> Kelola User
-                    </a>
+                    <Link href="/settings" className="side-link">
+                        <Settings size={18} /> Settings
+                    </Link>
+                    {role === 'admin' && (
+                        <Link href="/admin" className="side-link">
+                            <Shield size={18} /> Kelola User
+                        </Link>
+                    )}
                 </nav>
 
 

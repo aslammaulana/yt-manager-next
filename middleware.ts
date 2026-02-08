@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
 
     const path = request.nextUrl.pathname;
 
-    // 1. Dashboard & Admin Protection
-    if (path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/manager')) {
+    // 1. Dashboard, Admin, Settings Protection
+    if (path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/manager') || path.startsWith('/settings')) {
         if (!user) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
@@ -52,8 +52,8 @@ export async function middleware(request: NextRequest) {
 
         const role = profile?.role || 'no_access';
 
-        // Redirect 'no_access' to Pricing
-        if (role === 'no_access' && !path.startsWith('/pricing')) {
+        // Redirect 'no_access' to Pricing (except settings - they can set password)
+        if (role === 'no_access' && !path.startsWith('/pricing') && !path.startsWith('/settings')) {
             return NextResponse.redirect(new URL('/pricing', request.url));
         }
 
