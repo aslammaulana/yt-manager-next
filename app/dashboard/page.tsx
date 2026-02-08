@@ -23,6 +23,10 @@ import {
     Shield
 } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 // --- Types ---
 interface ChannelData {
     gmail: string;
@@ -414,7 +418,7 @@ export default function Dashboard() {
                     </a>
                 </nav>
 
-                
+
 
                 <div className="side-footer">
                     <div className="hint">

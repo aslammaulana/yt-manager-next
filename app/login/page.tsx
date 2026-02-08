@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LayoutDashboard } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function LoginPage() {
     const router = useRouter();
     const supabase = createClient();

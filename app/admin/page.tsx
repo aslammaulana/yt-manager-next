@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react';
 import { Users, Shield, ShieldAlert, CheckCircle, XCircle, RefreshCw, LayoutDashboard } from "lucide-react";
 import Link from 'next/link';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 interface Profile {
     id: string;
     email: string;

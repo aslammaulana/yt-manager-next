@@ -4,6 +4,10 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, CheckCircle, Shield, Crown } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function PricingPage() {
     const router = useRouter();
     const supabase = createClient();
