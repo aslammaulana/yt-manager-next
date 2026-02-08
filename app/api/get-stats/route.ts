@@ -24,33 +24,47 @@ export async function GET(req: NextRequest) {
             let nowInSeconds = Math.floor(Date.now() / 1000);
 
             // Token Refresh Logic
-            if (nowInSeconds >= expiresAt && acc.refresh_token) {
-                try {
-                    const response = await fetch("https://oauth2.googleapis.com/token", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: new URLSearchParams({
-                            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-                            client_secret: process.env.G_CLIENT_SECRET!,
-                            refresh_token: acc.refresh_token,
-                            grant_type: "refresh_token",
-                        }),
-                    });
+            // Token Refresh Logic
+            // Refresh if expired or expires in < 5 mins (300s)
+            if ((nowInSeconds + 300) >= expiresAt && acc.refresh_token) {
+                if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || !process.env.G_CLIENT_SECRET) {
+                    console.error("Missing Google Client ID or Secret");
+                } else {
+                    try {
+                        const response = await fetch("https://oauth2.googleapis.com/token", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: new URLSearchParams({
+                                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+                                client_secret: process.env.G_CLIENT_SECRET,
+                                refresh_token: acc.refresh_token,
+                                grant_type: "refresh_token",
+                            }),
+                        });
 
-                    const newTokenData = await response.json();
+                        const newTokenData = await response.json();
 
-                    if (newTokenData.access_token) {
-                        token = newTokenData.access_token;
-                        expiresAt = nowInSeconds + (newTokenData.expires_in || 3600);
+                        if (!response.ok) {
+                            console.error(`Failed to refresh token for ${acc.gmail}: ${response.status} ${JSON.stringify(newTokenData)}`);
+                        } else if (newTokenData.access_token) {
+                            token = newTokenData.access_token;
+                            // Google returns expires_in (seconds)
+                            expiresAt = nowInSeconds + (newTokenData.expires_in || 3600);
 
-                        // Update DB with new token
-                        await supabase.from('yt_accounts').update({
-                            access_token: token,
-                            expires_at: expiresAt
-                        }).eq('gmail', acc.gmail);
+                            console.log(`Token refreshed successfully for ${acc.gmail}. New expiry: ${expiresAt}`);
+
+                            // Update DB with new token
+                            const { error: updateError } = await supabase.from('yt_accounts').update({
+                                access_token: token,
+                                expires_at: expiresAt,
+                                updated_at: new Date().toISOString()
+                            }).eq('gmail', acc.gmail);
+
+                            if (updateError) console.error("DB Update Error after refresh:", updateError);
+                        }
+                    } catch (refreshErr) {
+                        console.error("Exception during token refresh for " + acc.gmail, refreshErr);
                     }
-                } catch (refreshErr) {
-                    console.error("Failed Refresh Token for: " + acc.gmail);
                 }
             }
 

@@ -20,8 +20,12 @@ import {
     Video,
     Copy,
     ClipboardPaste,
-    Shield
+    Shield,
+    Menu,
+    X,
+    MoreVertical
 } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -40,7 +44,7 @@ interface ChannelData {
 
 interface MergedChannel extends ChannelData {
     id: string; // Channel ID
-    realtime: { h48: number; error?: string }; // Added error field
+    realtime: { h48: number; h60: number; error?: string }; // Added h60
     isExpired: boolean;
     emailSource: string;
 }
@@ -58,6 +62,7 @@ export default function Dashboard() {
     const [statusMsg, setStatusMsg] = useState("Initializing...");
     const [isOnline, setIsOnline] = useState(false);
     const [search, setSearch] = useState("");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Auth State
     const supabase = createClient();
@@ -115,16 +120,11 @@ export default function Dashboard() {
     };
 
     // --- Core Sync Logic ---
-    const fetchRealtimeStats = async (channelId: string) => {
-        if (!gApiInited || !window.gapi?.client?.youtubeAnalytics) return { h48: 0 };
+    // --- Core Sync Logic ---
+    const fetchRealtimeStats = async (channelId: string, token: string) => {
+        if (!token) return { h48: 0, h60: 0 };
 
         try {
-            // According to YouTube Analytics API docs/user finding:
-            // "For real-time data, startDate and endDate are not required or should be set 
-            // to a recent date to get the live/realtime feed."
-            // However, the API *technically* requires startDate/endDate parameters for reports.query.
-            // We'll set them to today/yesterday to satisfy the API shape, but rely on 'liveOrOnDemand'
-
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -132,69 +132,59 @@ export default function Dashboard() {
             let views48h = 0;
 
             try {
-                // Primary Method: 'liveOrOnDemand' dimension
-                const res = await window.gapi.client.youtubeAnalytics.reports.query({
-                    ids: `channel==${channelId}`,
-                    startDate: threeDaysAgo, // Broad range to catch all recent realtime data
-                    endDate: today,
-                    metrics: "views",
-                    dimensions: "liveOrOnDemand"
-                    // sort: "-views" // Optional
+                // Determine URL for Analytics API
+                const analyticsUrl = `https://youtubeanalytics.googleapis.com/v2/reports?` +
+                    `ids=channel==${channelId}&` +
+                    `startDate=${threeDaysAgo}&` +
+                    `endDate=${today}&` +
+                    `metrics=views&` +
+                    `dimensions=liveOrOnDemand`;
+
+                const res = await fetch(analyticsUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                const rows = res.result.rows || [];
+                if (!res.ok) throw new Error(`Analytics API error: ${res.status}`);
+
+                const data = await res.json();
+                const rows = data.rows || [];
                 // Sum all rows returned (usually splits by live vs onDemand)
                 views48h = rows.reduce((acc: number, row: any) => acc + (row[1] || 0), 0);
 
-                console.log(`[Realtime 48h] ${channelId}: ${views48h}`);
-
-                // Log success
                 if (views48h > 0) {
-                    fetch('/api/log', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            message: `✅ Realtime 48h for ${channelId}: ${views48h}`,
-                            type: 'info'
-                        })
-                    }).catch(() => { });
+                    console.log(`[Realtime 48h] ${channelId}: ${views48h}`);
                 }
 
             } catch (err: any) {
-                const errMsg = err?.result?.error?.message || err.message || "Unknown error";
-                console.warn(`Realtime 48h fetch failed for ${channelId}: ${errMsg}`);
+                console.warn(`Realtime 48h fetch failed for ${channelId}: ${err.message}`);
 
-                fetch('/api/log', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        message: `⚠️ Realtime 48h Error for ${channelId}: ${errMsg}`,
-                        type: 'warn'
-                    })
-                }).catch(() => { });
-
-                // Fallback: Standard daily query (proxied)
+                // Fallback logic
                 try {
-                    const resFallback = await window.gapi.client.youtubeAnalytics.reports.query({
-                        ids: `channel==${channelId}`,
-                        startDate: threeDaysAgo,
-                        endDate: today,
-                        metrics: "views"
+                    const fallbackUrl = `https://youtubeanalytics.googleapis.com/v2/reports?` +
+                        `ids=channel==${channelId}&` +
+                        `startDate=${threeDaysAgo}&` +
+                        `endDate=${today}&` +
+                        `metrics=views`;
+
+                    const resFallback = await fetch(fallbackUrl, {
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
 
-                    // Estimate 48h from last ~3 days of data
-                    const totalRecent = resFallback.result.rows?.[0]?.[0] || 0;
-                    views48h = Math.floor((totalRecent / 3) * 2);
-
+                    if (resFallback.ok) {
+                        const dataFallback = await resFallback.json();
+                        const totalRecent = dataFallback.rows?.[0]?.[0] || 0;
+                        views48h = Math.floor((totalRecent / 3) * 2);
+                    }
                 } catch (fallbackErr) {
-                    console.error("Fallback failed", fallbackErr);
+                    // console.error("Fallback failed", fallbackErr);
                 }
             }
 
-            return { h48: views48h };
+            return { h48: views48h, h60: 0 };
 
         } catch (e: any) {
             console.error("Critical Realtime Error " + channelId, e);
-            const errorMsg = e?.result?.error?.message || e.message || "Unknown error";
-            return { h48: 0, error: errorMsg };
+            return { h48: 0, h60: 0, error: e.message };
         }
     };
 
@@ -208,54 +198,58 @@ export default function Dashboard() {
 
             if ((dbAccounts as any).error) throw new Error((dbAccounts as any).error);
 
-            if (dbAccounts.length === 0) {
+            if (!Array.isArray(dbAccounts) || dbAccounts.length === 0) {
                 setStatus("Database Kosong.", false);
                 setChannels([]);
                 setLoading(false);
                 return;
             }
 
-            let mergedData: MergedChannel[] = [];
-
-            for (const acc of dbAccounts) {
+            // Parallel Execution
+            const promises = dbAccounts.map(async (acc) => {
                 try {
-                    // Only try gapi if initialized and token exists
-                    if (gApiInited && window.gapi && acc.access_token) {
-                        window.gapi.client.setToken({ access_token: acc.access_token });
-                        const res = await window.gapi.client.youtube.channels.list({ part: "snippet,statistics", mine: true });
+                    if (acc.access_token) {
+                        // Use pure fetch instead of GAPI library for parallelism
+                        const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true`, {
+                            headers: { 'Authorization': `Bearer ${acc.access_token}` }
+                        });
 
-                        if (res.result && res.result.items) {
-                            for (let item of res.result.items) {
-                                const realtime = await fetchRealtimeStats(item.id);
-                                mergedData.push({
-                                    ...acc,
-                                    id: item.id,
-                                    name: item.snippet.title,
-                                    thumbnail: item.snippet.thumbnails.default.url,
-                                    subs: item.statistics.subscriberCount,
-                                    views: item.statistics.viewCount,
-                                    realtime: realtime,
-                                    isExpired: false,
-                                    emailSource: acc.gmail
-                                });
-                            }
+                        if (!res.ok) throw new Error(`API Error ${res.status}`);
+                        const data = await res.json();
+
+                        if (data.items && data.items.length > 0) {
+                            const item = data.items[0];
+                            const realtime = await fetchRealtimeStats(item.id, acc.access_token);
+                            return {
+                                ...acc,
+                                id: item.id,
+                                name: item.snippet.title,
+                                thumbnail: item.snippet.thumbnails.default.url,
+                                subs: item.statistics.subscriberCount,
+                                views: item.statistics.viewCount,
+                                realtime: realtime,
+                                isExpired: false,
+                                emailSource: acc.gmail
+                            } as MergedChannel;
                         } else {
                             throw new Error("No channel found");
                         }
                     } else {
-                        throw new Error("GAPI not ready or no token");
+                        throw new Error("No token");
                     }
-                } catch (err) {
+                } catch (err: any) {
                     // Fallback to DB data
-                    mergedData.push({
+                    return {
                         ...acc,
                         id: acc.gmail, // Use email as fake ID
-                        realtime: { h48: 0 },
+                        realtime: { h48: 0, h60: 0, error: err.message },
                         isExpired: true,
                         emailSource: acc.gmail
-                    });
+                    } as MergedChannel;
                 }
-            }
+            });
+
+            const mergedData = await Promise.all(promises);
 
             setChannels(mergedData);
             updateAggregates(mergedData);
@@ -264,16 +258,6 @@ export default function Dashboard() {
 
         } catch (err: any) {
             console.error("Sync Error:", err);
-
-            // Log sync error to server
-            fetch('/api/log', {
-                method: 'POST',
-                body: JSON.stringify({
-                    message: `Sync Error: ${err.message || err}`,
-                    type: 'error'
-                })
-            }).catch(() => { });
-
             setStatus("Database Offline.", false);
         } finally {
             setLoading(false);
@@ -362,13 +346,11 @@ export default function Dashboard() {
     }, []);
 
     useEffect(() => {
-        // Initial fetch when GAPI is ready
-        if (gApiInited) {
-            fetchAllChannelsData();
-            const interval = setInterval(fetchAllChannelsData, 300000); // 5 mins
-            return () => clearInterval(interval);
-        }
-    }, [gApiInited]);
+        // Initial fetch - no longer depends on GAPI init
+        fetchAllChannelsData();
+        const interval = setInterval(fetchAllChannelsData, 300000); // 5 mins
+        return () => clearInterval(interval);
+    }, []);
 
     const initGapi = () => {
         const gapi = window.gapi;
@@ -394,66 +376,29 @@ export default function Dashboard() {
             />
 
             {/* SIDEBAR */}
-            <aside className="sidebar">
-                <div className="side-brand">
-                    <div className="logo">
-                        {/* Placeholder Logo */}
-                        <LayoutDashboard size={24} className="text-cyan-400" />
-                    </div>
-                    <div className="side-title">
-                        <div className="name">YT Manager</div>
-                        <div className="sub">PRO EDITION</div>
-                    </div>
-                </div>
-
-                <nav className="side-nav">
-                    <a href="#" className="side-link active">
-                        <LayoutDashboard size={18} /> Dashboard
-                    </a>
-                    <a href="#" className="side-link" onClick={(e) => { e.preventDefault(); googleSignIn(); }}>
-                        <Upload size={18} /> Tambah Channel
-                    </a>
-                    <Link href="/settings" className="side-link">
-                        <Settings size={18} /> Settings
-                    </Link>
-                    {role === 'admin' && (
-                        <Link href="/admin" className="side-link">
-                            <Shield size={18} /> Kelola User
-                        </Link>
-                    )}
-                </nav>
-
-
-
-                <div className="side-footer">
-                    <div className="hint">
-                        💡 Tip: Token akan auto-refresh jika Anda membuka dashboard ini.
-                    </div>
-                </div>
-            </aside>
+            <div className={`fixed inset-y-0 left-0 z-50 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:block transition-transform duration-300 ease-in-out`}>
+                <Sidebar role={role} googleSignIn={googleSignIn} handleSignOut={handleSignOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            </div>
 
             {/* MAIN */}
-            <main className="main">
+            <main className="main w-full md:flex-1 overflow-x-hidden">
                 {/* TOPBAR */}
-                <div className="topbar">
-                    <div>
-                        <h1 className="page-title">Dashboard Overview</h1>
-                        <div className="page-sub">Pantau performa channel secara realtime</div>
-                        <div className={`status-badge ${isOnline ? 'status-online' : ''}`}>
-                            <div className="status-dot"></div>
-                            <span id="statusText">{statusMsg}</span>
+                <div className="topbar flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 text-gray-400 hover:text-white">
+                            <Menu size={24} />
+                        </button>
+                        <div>
+                            <h1 className="page-title text-2xl md:text-3xl font-bold">Dashboard Overview</h1>
+                            <div className="page-sub text-gray-500 text-sm">Pantau performa channel secara realtime</div>
+                            <div className={`status-badge ${isOnline ? 'status-online' : ''} inline-flex items-center gap-2 mt-2 px-3 py-1 bg-gray-900 rounded-full border border-gray-800 text-xs`}>
+                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span id="statusText">{statusMsg}</span>
+                            </div>
                         </div>
                     </div>
 
                     <div className="flex gap-4 items-center">
-                        {role === 'admin' && (
-                            <Link href="/admin" className="btn ghost text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 px-3 py-1.5 rounded-lg flex items-center gap-2 transition" title="Admin Panel">
-                                <Shield size={16} /> <span className="hidden md:inline">Admin</span>
-                            </Link>
-                        )}
-
-                        <div className="h-6 w-px bg-gray-700 mx-1"></div>
-
                         <div className="search-wrap">
                             <Search size={16} className="text-gray-400" />
                             <input
@@ -468,11 +413,7 @@ export default function Dashboard() {
                             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
                         <button onClick={googleSignIn} className="btn primary" title="Add another YouTube Account">
-                            <Upload size={16} /> <span className="hidden md:inline">Add Gmail</span>
-                        </button>
-
-                        <button onClick={handleSignOut} className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 p-2 rounded-lg transition" title="Sign Out">
-                            <LogOut size={16} />
+                            <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
                         </button>
                     </div>
                 </div>
@@ -526,21 +467,76 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="table-wrap">
-                        {/* ... existing table code ... */}
-                        <table className="channel-table">
+                        {/* MOBILE CARD VIEW */}
+                        <div className="md:hidden grid gap-4">
+                            {channels.map((ch, idx) => {
+                                if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
+                                return (
+                                    <div key={idx} className="bg-[#1e1e1e] border border-gray-800 rounded-xl p-4 flex flex-col gap-3 relative">
+                                        <div className="flex items-center gap-3">
+                                            <img src={ch.thumbnail} alt="" className="w-10 h-10 rounded-full border border-gray-700" />
+                                            <div>
+                                                <div className="font-bold text-white text-base">{ch.name}</div>
+                                                <div className="text-xs text-gray-400 flex gap-2">
+                                                    <span>{ch.isExpired ? '---' : formatNumber(ch.subs)} Subs</span>
+                                                    <span>•</span>
+                                                    <span>{ch.isExpired ? '---' : formatNumber(ch.views)} Views</span>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => handleDelete(ch.emailSource)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500">
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 mt-2 bg-black/20 p-3 rounded-lg">
+                                            <div className="text-center">
+                                                <div className="text-xs text-gray-500 uppercase">48H Views</div>
+                                                <div className="text-yellow-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h48)}</div>
+                                            </div>
+                                            <div className="text-center border-l border-gray-700">
+                                                <div className="text-xs text-gray-500 uppercase">60M Views</div>
+                                                <div className="text-cyan-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h60)}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2 mt-2">
+                                            {ch.isExpired ? (
+                                                <div className="w-full text-center p-2 bg-red-500/10 text-red-500 rounded-lg text-sm font-bold border border-red-500/20">
+                                                    EXPIRED
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg font-bold text-sm transition text-center">
+                                                        UPLOAD
+                                                    </button>
+                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center border border-gray-700">
+                                                        <Video size={18} />
+                                                    </Link>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* DESKTOP TABLE VIEW */}
+                        <table className="channel-table hidden md:table">
                             <thead>
                                 <tr>
                                     <th>Channel Name</th>
                                     <th>Subscribers</th>
                                     <th>Total Views</th>
-                                    <th>Realtime 48h</th>
-                                    <th>Status</th>
+                                    <th>Realtime 48H</th>
+                                    <th>Realtime 60M</th>
+                                    <th>Upload</th>
+                                    <th>Videos</th>
                                     <th className="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading && (
-                                    <tr><td colSpan={6} className="text-center py-8 text-gray-500">Loading data...</td></tr>
+                                    <tr><td colSpan={8} className="text-center py-8 text-gray-500">Loading data...</td></tr>
                                 )}
                                 {!loading && channels.map((ch, idx) => {
                                     if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
@@ -554,8 +550,11 @@ export default function Dashboard() {
                                             </td>
                                             <td>{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
                                             <td>{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
-                                            <td className="text-yellow-400 font-bold" title={ch.realtime.error || "Realtime estimate"}>
+                                            <td className="text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
                                                 {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
+                                            </td>
+                                            <td className="text-cyan-400 font-bold">
+                                                {ch.isExpired ? '---' : formatNumber(ch.realtime.h60)}
                                             </td>
                                             <td>
                                                 {ch.isExpired ? (
@@ -568,15 +567,15 @@ export default function Dashboard() {
                                                     </button>
                                                 )}
                                             </td>
+                                            <td>
+                                                <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos">
+                                                    <Video size={16} /> <span className="text-xs">Lihat</span>
+                                                </Link>
+                                            </td>
                                             <td className="text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors" title="View Videos">
-                                                        <Video size={16} />
-                                                    </Link>
-                                                    <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Remove Channel">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
+                                                <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </td>
                                         </tr>
                                     )

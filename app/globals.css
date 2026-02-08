@@ -216,7 +216,7 @@ body {
 @media (max-width: 1200px) {
   .stats-wrapper { grid-template-columns: repeat(2, 1fr); }
   .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; } /* Nanti bisa buat burger menu */
+  /* .sidebar { display: none; } -- Handled by Tailwind/State */
 }
 
 @media (max-width: 600px) {
