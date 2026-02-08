@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
+// Service role client for bypassing RLS when saving
+const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -17,6 +19,10 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+        // Get currently logged-in user from session
+        const supabase = await createServerClient();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+
         // 1. TUKAR CODE DENGAN TOKEN
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
@@ -46,7 +52,7 @@ export async function GET(req: NextRequest) {
         const ytData = await ytRes.json();
         const channel = ytData.items ? ytData.items[0] : null;
 
-        // 4. SUSUN DATA UNTUK SUPABASE
+        // 4. SUSUN DATA UNTUK SUPABASE (TERMASUK USER_ID!)
         const payload: any = {
             gmail: user.email,
             name: channel ? channel.snippet.title : user.name,
@@ -55,15 +61,17 @@ export async function GET(req: NextRequest) {
             views: channel ? channel.statistics.viewCount : "0",
             access_token: tokens.access_token,
             expires_at: Math.floor(Date.now() / 1000) + (tokens.expires_in || 3600),
-            updated_at: new Date().toISOString() // Ensure updated_at is set
+            updated_at: new Date().toISOString(),
+            // PENTING: Link channel to currently logged-in user!
+            user_id: currentUser?.id || null
         };
 
         if (tokens.refresh_token) {
             payload.refresh_token = tokens.refresh_token;
         }
 
-        // 5. SIMPAN KE SUPABASE
-        const { error } = await supabase.from('yt_accounts').upsert(payload, { onConflict: 'gmail' });
+        // 5. SIMPAN KE SUPABASE (using admin client to bypass RLS)
+        const { error } = await supabaseAdmin.from('yt_accounts').upsert(payload, { onConflict: 'gmail' });
         if (error) throw error;
 
         // 6. REDIRECT KE DASHBOARD
