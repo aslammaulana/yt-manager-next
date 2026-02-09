@@ -25,7 +25,7 @@ import {
     X,
     MoreVertical
 } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import AppSidebar from "@/components/AppSidebar";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -369,50 +369,48 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="app">
+        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
             <Script
                 src="https://apis.google.com/js/api.js"
                 onLoad={initGapi}
             />
 
             {/* SIDEBAR */}
-            <div className={`fixed inset-y-0 left-0 z-50 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:block transition-transform duration-300 ease-in-out`}>
-                <Sidebar role={role} googleSignIn={googleSignIn} handleSignOut={handleSignOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-            </div>
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             {/* MAIN */}
-            <main className="main w-full md:flex-1 overflow-x-hidden">
+            <main className="p-6 md:p-10 w-full overflow-x-hidden">
                 {/* TOPBAR */}
-                <div className="topbar flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
                     <div className="flex items-center gap-4">
                         <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 text-gray-400 hover:text-white">
                             <Menu size={24} />
                         </button>
                         <div>
-                            <h1 className="page-title text-2xl md:text-3xl font-bold">Dashboard Overview</h1>
-                            <div className="page-sub text-gray-500 text-sm">Pantau performa channel secara realtime</div>
-                            <div className={`status-badge ${isOnline ? 'status-online' : ''} inline-flex items-center gap-2 mt-2 px-3 py-1 bg-gray-900 rounded-full border border-gray-800 text-xs`}>
-                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
+                            <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
+                            <div className={`inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
+                                <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
                                 <span id="statusText">{statusMsg}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex gap-4 items-center">
-                        <div className="search-wrap">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
                             <Search size={16} className="text-gray-400" />
                             <input
                                 type="text"
-                                className="search"
+                                className="bg-transparent border-none outline-none text-white w-full md:w-[250px] text-sm placeholder:text-gray-600"
                                 placeholder="Cari Channel..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-                        <button onClick={fetchAllChannelsData} className="btn ghost" title="Refresh Data">
+                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all bg-white/5 text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
                             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
-                        <button onClick={googleSignIn} className="btn primary" title="Add another YouTube Account">
+                        <button onClick={googleSignIn} className="px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all bg-linear-to-br from-blue-500 to-cyan-400 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)] shadow-lg shadow-cyan-500/20" title="Add another YouTube Account">
                             <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
                         </button>
                     </div>
@@ -420,55 +418,55 @@ export default function Dashboard() {
 
 
                 {/* STATS CARDS */}
-                <div className="stats-wrapper">
-                    <div className="stat-card highlight">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
                         <div className="flex justify-between items-center mb-2">
-                            <div className="label">TOTAL SUBSCRIBERS</div>
+                            <div className="text-[13px] text-slate-400 font-medium">TOTAL SUBSCRIBERS</div>
                             <Users size={18} className="text-cyan-400" />
                         </div>
-                        <div className="value text-cyan-400">{formatNumber(totalSubs)}</div>
+                        <div className="text-3xl font-extrabold tracking-tight my-2 text-cyan-400">{formatNumber(totalSubs)}</div>
                         <div className="text-xs text-gray-400">Semua Channel</div>
                     </div>
-                    <div className="stat-card">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-2">
-                            <div className="label">TOTAL VIEWS</div>
+                            <div className="text-[13px] text-slate-400 font-medium">TOTAL VIEWS</div>
                             <Eye size={18} className="text-blue-400" />
                         </div>
-                        <div className="value">{formatNumber(totalViews)}</div>
+                        <div className="text-3xl font-extrabold tracking-tight my-2">{formatNumber(totalViews)}</div>
                     </div>
-                    <div className="stat-card">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-2">
-                            <div className="label">REALTIME 48H</div>
+                            <div className="text-[13px] text-slate-400 font-medium">REALTIME 48H</div>
                             <Activity size={18} className="text-yellow-400" />
                         </div>
-                        <div className="value text-yellow-400">{formatNumber(totalRealtime)}</div>
+                        <div className="text-3xl font-extrabold tracking-tight my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
                     </div>
-                    <div className="stat-card">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-2">
-                            <div className="label">ACTIVE CHANNELS</div>
+                            <div className="text-[13px] text-slate-400 font-medium">ACTIVE CHANNELS</div>
                             <Zap size={18} className="text-green-400" />
                         </div>
-                        <div className="value">{totalChannel}</div>
+                        <div className="text-3xl font-extrabold tracking-tight my-2">{totalChannel}</div>
                         <div className="text-xs text-gray-400">Last: {lastUpdate}</div>
                     </div>
                 </div>
 
                 {/* TABLE */}
-                <div className="panel">
-                    <div className="panel-head flex justify-between items-center">
-                        <div className="panel-title">Channel List</div>
+                <div className="bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md mt-5">
+                    <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center">
+                        <div className="text-lg font-bold">Channel List</div>
                         <div className="flex gap-2">
-                            <button onClick={handleCopyData} className="btn ghost sm" title="Salin JSON Channel">
+                            <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors" title="Salin JSON Channel">
                                 <Copy size={16} /> Salin Data
                             </button>
-                            <button onClick={() => setShowPasteModal(true)} className="btn ghost sm" title="Tempel JSON Channel">
+                            <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors" title="Tempel JSON Channel">
                                 <ClipboardPaste size={16} /> Tempel Data
                             </button>
                         </div>
                     </div>
-                    <div className="table-wrap">
+                    <div className="w-full overflow-x-auto">
                         {/* MOBILE CARD VIEW */}
-                        <div className="md:hidden grid gap-4">
+                        <div className="md:hidden grid gap-4 p-4">
                             {channels.map((ch, idx) => {
                                 if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
                                 return (
@@ -521,58 +519,58 @@ export default function Dashboard() {
                         </div>
 
                         {/* DESKTOP TABLE VIEW */}
-                        <table className="channel-table hidden md:table">
+                        <table className="w-full border-collapse hidden md:table">
                             <thead>
                                 <tr>
-                                    <th>Channel Name</th>
-                                    <th>Subscribers</th>
-                                    <th>Total Views</th>
-                                    <th>Realtime 48H</th>
-                                    <th>Realtime 60M</th>
-                                    <th>Upload</th>
-                                    <th>Videos</th>
-                                    <th className="text-center">Action</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Channel Name</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Subs</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Total Views</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Realtime 48H</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Realtime 60M</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Upload</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Videos</th>
+                                    <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-white/10">
                                 {loading && (
                                     <tr><td colSpan={8} className="text-center py-8 text-gray-500">Loading data...</td></tr>
                                 )}
                                 {!loading && channels.map((ch, idx) => {
                                     if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
                                     return (
-                                        <tr key={idx}>
-                                            <td>
+                                        <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4.5 text-sm">
                                                 <div className="flex items-center gap-3">
                                                     <img src={ch.thumbnail} alt="" className="w-8 h-8 rounded-full border border-gray-700" />
                                                     <div className="font-semibold">{ch.name}</div>
                                                 </div>
                                             </td>
-                                            <td>{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
-                                            <td>{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
-                                            <td className="text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
+                                            <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
+                                            <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
+                                            <td className="px-6 py-4.5 text-sm text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
                                                 {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
                                             </td>
-                                            <td className="text-cyan-400 font-bold">
+                                            <td className="px-6 py-4.5 text-sm text-cyan-400 font-bold">
                                                 {ch.isExpired ? '---' : formatNumber(ch.realtime.h60)}
                                             </td>
-                                            <td>
+                                            <td className="px-6 py-4.5 text-sm">
                                                 {ch.isExpired ? (
                                                     <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
                                                         EXPIRED
                                                     </span>
                                                 ) : (
-                                                    <button onClick={() => handleManagerOpen(ch)} className="badge-ok cursor-pointer hover:bg-cyan-500/20 transition-colors">
+                                                    <button onClick={() => handleManagerOpen(ch)} className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-xs font-bold border border-cyan-500/20 cursor-pointer hover:bg-cyan-500/20 transition-colors">
                                                         UPLOAD
                                                     </button>
                                                 )}
                                             </td>
-                                            <td>
+                                            <td className="px-6 py-4.5 text-sm">
                                                 <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos">
                                                     <Video size={16} /> <span className="text-xs">Lihat</span>
                                                 </Link>
                                             </td>
-                                            <td className="text-center">
+                                            <td className="px-6 py-4.5 text-sm text-center">
                                                 <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
                                                     <Trash2 size={16} />
                                                 </button>
@@ -585,7 +583,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="footer text-center text-sm">
+                <div className="mt-10 pt-5 border-t border-white/10 text-slate-500 text-center text-sm">
                     &copy; {new Date().getFullYear()} Bang Memed Project. All rights reserved.
                 </div>
 

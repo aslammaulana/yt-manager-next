@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
-  weight: ['300', '400', '600', '700'],
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-poppins",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -20,8 +24,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={poppins.className}>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020617] text-white min-h-screen overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200`}>
+        {/* Background Glow */}
+        <div className="fixed inset-[-20%] z-0 pointer-events-none blur-[60px]"
+          style={{
+            background: `
+                 radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.15), transparent 40%),
+                 radial-gradient(circle at 85% 25%, rgba(34, 211, 238, 0.12), transparent 40%),
+                 radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.1), transparent 50%)
+               `
+          }}
+        />
+        <div className="relative z-10 min-h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );

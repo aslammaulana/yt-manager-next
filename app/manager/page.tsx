@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Upload, Image as ImageIcon, Rocket, X, CloudUpload } from "lucide-react";
+import AppSidebar from "@/components/AppSidebar";
+import { Upload, Image as ImageIcon, Rocket, X, CloudUpload, Menu } from "lucide-react";
 
 export default function Manager() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [activeData, setActiveData] = useState<any>(null);
     const [logs, setLogs] = useState<string[]>([]);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadText, setUploadText] = useState("UNGGAH SEKARANG");
     const [privacy, setPrivacy] = useState("private");
@@ -181,114 +183,150 @@ export default function Manager() {
     if (!activeData) return <div className="p-10 text-center">Loading Manager...</div>;
 
     return (
-        <div className="bg-slate-900 min-h-screen text-slate-200 p-5 font-sans">
-            <header className="bg-gradient-to-b from-slate-800 to-slate-900 p-6 rounded-3xl mb-8 shadow-2xl flex justify-between items-center border border-white/5 mx-auto max-w-6xl">
-                <div className="flex flex-col">
-                    <h1 className="text-xl font-bold text-white tracking-wider">YouTube Manager <span className="text-red-500">PRO</span></h1>
-                    <span className="text-xs text-slate-500 italic">by-bangmemed.id</span>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-                <div className="flex flex-col items-center gap-3">
-                    <div className="relative w-20 h-20">
-                        <div className="absolute top-0 left-0 w-full h-full rounded-full bg-red-500 blur-xl animate-pulse opacity-40"></div>
-                        <img src={activeData.img} className="w-full h-full rounded-full border-2 border-red-500 object-cover relative z-10" />
-                    </div>
-                    <p className="text-lg font-bold text-white">{activeData.title}</p>
-                </div>
-
-                <div>
-                    <button onClick={() => window.close()} className="border border-slate-700 text-slate-400 px-5 py-2 rounded-full text-xs font-bold hover:border-red-500 hover:text-white transition-all">
-                        TUTUP PANEL
+            <main className="p-6 md:p-10 w-full overflow-x-hidden font-sans text-slate-200">
+                <div className="flex items-center gap-4 mb-6 md:hidden">
+                    <button onClick={() => setSidebarOpen(true)} className="p-2 text-gray-400 hover:text-white">
+                        <Menu size={24} />
                     </button>
+                    <h1 className="text-xl font-bold text-white">Manager</h1>
                 </div>
-            </header>
+                <header className="bg-gradient-to-b from-slate-800 to-slate-900 p-6 rounded-3xl mb-8 shadow-2xl flex justify-between items-center border border-white/5 mx-auto max-w-6xl">
+                    <div className="flex flex-col">
+                        <h1 className="text-xl font-bold text-white tracking-wider">YouTube Manager <span className="text-red-500">PRO</span></h1>
+                        <span className="text-xs text-slate-500 italic">by-bangmemed.id</span>
+                    </div>
 
-            <div className="manager-container">
-                {/* LEFT: CONTENT */}
-                <div className="flex flex-col gap-6">
-                    <section className="bg-slate-800 p-6 rounded-3xl border border-white/5">
-                        <h3 className="text-red-500 font-bold mb-5 flex items-center gap-2 text-sm uppercase">
-                            <Upload size={16} /> Konten Video
-                        </h3>
-
-                        <div
-                            className="upload-area mb-4 group"
-                            onClick={() => videoInputRef.current?.click()}
-                        >
-                            <CloudUpload size={40} className="text-red-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                            <p className="font-bold text-sm text-slate-300">Pilih Video</p>
-                            <input type="file" ref={videoInputRef} accept="video/*" className="hidden" onChange={handleVideoSelect} />
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="relative w-20 h-20">
+                            <div className="absolute top-0 left-0 w-full h-full rounded-full bg-red-500 blur-xl animate-pulse opacity-40"></div>
+                            <img src={activeData.img} className="w-full h-full rounded-full border-2 border-red-500 object-cover relative z-10" />
                         </div>
-                        <video ref={videoPreviewRef} controls className="preview-media"></video>
+                        <p className="text-lg font-bold text-white">{activeData.title}</p>
+                    </div>
 
-                        <div className="mt-6">
-                            <label>Judul</label>
-                            <input type="text" ref={titleRef} placeholder="Ketik judul video..." />
-                        </div>
+                    <div>
+                        <button onClick={() => window.close()} className="border border-slate-700 text-slate-400 px-5 py-2 rounded-full text-xs font-bold hover:border-red-500 hover:text-white transition-all">
+                            TUTUP PANEL
+                        </button>
+                    </div>
+                </header>
 
-                        <div className="mt-4">
-                            <label>Deskripsi</label>
-                            <textarea ref={descRef} rows={4} placeholder="Ketik deskripsi..."></textarea>
-                        </div>
+                <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-[25px]">
+                    {/* LEFT: CONTENT */}
+                    <div className="flex flex-col gap-6">
+                        <section className="bg-slate-800 p-6 rounded-3xl border border-white/5">
+                            <h3 className="text-red-500 font-bold mb-5 flex items-center gap-2 text-sm uppercase">
+                                <Upload size={16} /> Konten Video
+                            </h3>
 
-                        <div className="mt-4">
-                            <label>Tags</label>
-                            <input type="text" ref={tagsRef} placeholder="tag1, tag2, tag3" />
-                        </div>
+                            <div
+                                className="border-2 border-dashed border-slate-700 p-10 text-center rounded-[15px] cursor-pointer bg-black/20 transition-all duration-300 hover:border-cyan-400 mb-4 group"
+                                onClick={() => videoInputRef.current?.click()}
+                            >
+                                <CloudUpload size={40} className="text-red-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="font-bold text-sm text-slate-300">Pilih Video</p>
+                                <input type="file" ref={videoInputRef} accept="video/*" className="hidden" onChange={handleVideoSelect} />
+                            </div>
+                            <video ref={videoPreviewRef} controls className="w-full rounded-xl mt-[15px] hidden border border-slate-700"></video>
 
-                        <h3 className="text-red-500 font-bold mt-8 mb-4 flex items-center gap-2 text-sm uppercase">
-                            <ImageIcon size={16} /> Custom Thumbnail
-                        </h3>
-                        <label>Pilih Gambar Sampul</label>
-                        <input type="file" ref={thumbInputRef} accept="image/*" onChange={handleThumbSelect} />
-                        <img ref={thumbPreviewRef} className="preview-media" />
-                    </section>
-                </div>
-
-                {/* RIGHT: PUBLISH */}
-                <div className="flex flex-col gap-6">
-                    <section className="bg-slate-800 p-6 rounded-3xl border border-white/5">
-                        <h3 className="text-red-500 font-bold mb-5 flex items-center gap-2 text-sm uppercase">
-                            <Rocket size={16} /> Publish
-                        </h3>
-
-                        <label>Visibilitas</label>
-                        <select value={privacy} onChange={(e) => setPrivacy(e.target.value)}>
-                            <option value="private">🔒 Privat</option>
-                            <option value="unlisted">🔗 Unlisted</option>
-                            <option value="public">🌐 Publik</option>
-                            <option value="scheduled">📅 Jadwalkan</option>
-                        </select>
-
-                        {privacy === "scheduled" && (
-                            <div className="bg-red-500/10 p-4 rounded-xl border border-red-500 mb-5">
-                                <label>Waktu Tayang</label>
+                            <div className="mt-6">
+                                <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Judul</label>
                                 <input
-                                    type="datetime-local"
-                                    value={schedule}
-                                    onChange={(e) => setSchedule(e.target.value)}
+                                    type="text"
+                                    ref={titleRef}
+                                    placeholder="Ketik judul video..."
+                                    className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors"
                                 />
                             </div>
-                        )}
 
-                        <button
-                            onClick={startUpload}
-                            disabled={isUploading}
-                            className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all text-white mt-4 ${isUploading ? 'bg-slate-600 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 hover:-translate-y-1 shadow-red-500/30'}`}
-                        >
-                            {uploadText}
-                        </button>
-
-                        <div className="log-box">
-                            <div ref={logBoxRef} className="log">
-                                {logs.map((log, i) => (
-                                    <div key={i} className="mb-1 text-xs font-mono text-green-400" dangerouslySetInnerHTML={{ __html: log }} />
-                                ))}
+                            <div className="mt-4">
+                                <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Deskripsi</label>
+                                <textarea
+                                    ref={descRef}
+                                    rows={4}
+                                    placeholder="Ketik deskripsi..."
+                                    className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors box-border"
+                                ></textarea>
                             </div>
-                        </div>
-                    </section>
+
+                            <div className="mt-4">
+                                <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Tags</label>
+                                <input
+                                    type="text"
+                                    ref={tagsRef}
+                                    placeholder="tag1, tag2, tag3"
+                                    className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors"
+                                />
+                            </div>
+
+                            <h3 className="text-red-500 font-bold mt-8 mb-4 flex items-center gap-2 text-sm uppercase">
+                                <ImageIcon size={16} /> Custom Thumbnail
+                            </h3>
+                            <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Pilih Gambar Sampul</label>
+                            <input
+                                type="file"
+                                ref={thumbInputRef}
+                                accept="image/*"
+                                onChange={handleThumbSelect}
+                                className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors"
+                            />
+                            <img ref={thumbPreviewRef} className="w-full rounded-xl mt-[15px] hidden border border-slate-700" />
+                        </section>
+                    </div>
+
+                    {/* RIGHT: PUBLISH */}
+                    <div className="flex flex-col gap-6">
+                        <section className="bg-slate-800 p-6 rounded-3xl border border-white/5">
+                            <h3 className="text-red-500 font-bold mb-5 flex items-center gap-2 text-sm uppercase">
+                                <Rocket size={16} /> Publish
+                            </h3>
+
+                            <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Visibilitas</label>
+                            <select
+                                value={privacy}
+                                onChange={(e) => setPrivacy(e.target.value)}
+                                className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors"
+                            >
+                                <option value="private">🔒 Privat</option>
+                                <option value="unlisted">🔗 Unlisted</option>
+                                <option value="public">🌐 Publik</option>
+                                <option value="scheduled">📅 Jadwalkan</option>
+                            </select>
+
+                            {privacy === "scheduled" && (
+                                <div className="bg-red-500/10 p-4 rounded-xl border border-red-500 mb-5">
+                                    <label className="block mb-2 text-[11px] font-semibold text-slate-400 uppercase">Waktu Tayang</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={schedule}
+                                        onChange={(e) => setSchedule(e.target.value)}
+                                        className="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-[10px] mb-[15px] outline-none focus:border-cyan-400 transition-colors"
+                                    />
+                                </div>
+                            )}
+
+                            <button
+                                onClick={startUpload}
+                                disabled={isUploading}
+                                className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all text-white mt-4 ${isUploading ? 'bg-slate-600 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 hover:-translate-y-1 shadow-red-500/30'}`}
+                            >
+                                {uploadText}
+                            </button>
+
+                            <div className="mt-5 p-[15px] bg-black rounded-[15px] border border-slate-800">
+                                <div ref={logBoxRef} className="font-mono text-xs text-[#00ff41] h-[120px] overflow-y-auto">
+                                    {logs.map((log, i) => (
+                                        <div key={i} className="mb-1 text-xs font-mono text-green-400" dangerouslySetInnerHTML={{ __html: log }} />
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </main>
+        </div >
     );
 }
