@@ -147,7 +147,7 @@ export default function Sidebar({
                 <div className="p-4 border-t border-gray-800 bg-[#0d131f]">
                     <div className="flex flex-col gap-3">
 
-                        <div className="flex items-center gap-3 px-2 pt-2 border-t border-gray-800/50">
+                        <div className="flex items-center gap-3 px-2 ">
                             <div className="relative">
                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse relative z-10" />
                                 <div className="absolute inset-0 bg-green-500 blur-[2px] animate-pulse" />

@@ -389,14 +389,14 @@ export default function Dashboard() {
                     <div>
                         <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
                         <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
-                        <div className={`inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
+                        <div className={`inline-flex items-center gap-2 bg-[#1a2234] px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
                             <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
                             <span id="statusText">{statusMsg}</span>
                         </div>
                     </div>
 
                     <div className="flex gap-4 items-center">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2234] border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
                             <Search size={16} className="text-gray-400" />
                             <input
                                 type="text"
@@ -406,7 +406,7 @@ export default function Dashboard() {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-white/5 text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
+                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#1a2234] text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
                             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
                         <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-linear-to-br from-blue-500 to-cyan-400 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)] shadow-lg shadow-cyan-500/20" title="Add another YouTube Account">
@@ -418,7 +418,7 @@ export default function Dashboard() {
 
                 {/* STATS CARDS */}
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5 mb-8">
-                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
+                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
                             <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">SUBSCRIBERS</div>
                             <Users size={14} className="text-cyan-400 md:w-[18px] md:h-[18px]" />
@@ -426,21 +426,21 @@ export default function Dashboard() {
                         <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-cyan-400">{formatNumber(totalSubs)}</div>
                         <div className="text-[10px] md:text-xs text-gray-400">Semua Channel</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
                             <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">TOTAL VIEWS</div>
                             <Eye size={14} className="text-blue-400 md:w-[18px] md:h-[18px]" />
                         </div>
                         <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{formatNumber(totalViews)}</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
                             <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">REALTIME 48H</div>
                             <Activity size={14} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                         </div>
                         <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
                             <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">CHANNELS</div>
                             <Zap size={14} className="text-green-400 md:w-[18px] md:h-[18px]" />
@@ -451,21 +451,21 @@ export default function Dashboard() {
                 </div>
 
                 {/* TABLE */}
-                <div className="bg-white/5 border border-white/10 rounded-lg backdrop-blur-md mt-5">
+                <div className="bg-[#1a2234] border border-white/10 rounded-lg backdrop-blur-md mt-5">
                     <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center">
                         <div className="text-lg font-bold">Channel List</div>
                         <div className="hidden md:flex gap-2">
-                            <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors" title="Salin JSON Channel">
+                            <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[#1a2234] hover:bg-white/10 border border-white/10 transition-colors" title="Salin JSON Channel">
                                 <Copy size={16} /> Salin Data
                             </button>
-                            <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors" title="Tempel JSON Channel">
+                            <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[#1a2234] hover:bg-white/10 border border-white/10 transition-colors" title="Tempel JSON Channel">
                                 <ClipboardPaste size={16} /> Tempel Data
                             </button>
                         </div>
                     </div>
                     <div className="w-full overflow-x-auto">
                         {/* MOBILE CARD VIEW */}
-                        <div className="md:hidden grid gap-4 p-4">
+                        <div className="md:hidden grid gap-4 p-2">
                             {channels.map((ch, idx) => {
                                 if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
                                 return (
@@ -518,17 +518,17 @@ export default function Dashboard() {
                         </div>
 
                         {/* DESKTOP TABLE VIEW */}
-                        <table className="w-full border-collapse hidden md:table">
+                        <table className=" w-full border-collapse hidden md:table">
                             <thead>
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Channel Name</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Subs</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Total Views</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Realtime 48H</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Realtime 60M</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Upload</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Videos</th>
-                                    <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-white/5 font-semibold">Action</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Channel Name</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Subs</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Total Views</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Realtime 48H</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Realtime 60M</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Upload</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Videos</th>
+                                    <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10">
@@ -538,7 +538,7 @@ export default function Dashboard() {
                                 {!loading && channels.map((ch, idx) => {
                                     if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
                                     return (
-                                        <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                        <tr key={idx} className="hover:bg-[#1a2234] transition-colors">
                                             <td className="px-6 py-4.5 text-sm">
                                                 <div className="flex items-center gap-3">
                                                     <img src={ch.thumbnail} alt="" className="w-8 h-8 rounded-full border border-gray-700" />
