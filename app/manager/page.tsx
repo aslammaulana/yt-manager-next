@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import AppSidebar from "@/components/AppSidebar";
-import { Upload, Image as ImageIcon, Rocket, X, CloudUpload, Menu } from "lucide-react";
+import MobileHeader from "@/components/MobileHeader";
+import { Upload, Image as ImageIcon, Rocket, X, CloudUpload } from "lucide-react";
 
 export default function Manager() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -186,13 +187,10 @@ export default function Manager() {
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
             <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+            {/* Mobile Header */}
+            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+
             <main className="p-6 md:p-10 w-full overflow-x-hidden font-sans text-slate-200">
-                <div className="flex items-center gap-4 mb-6 md:hidden">
-                    <button onClick={() => setSidebarOpen(true)} className="p-2 text-gray-400 hover:text-white">
-                        <Menu size={24} />
-                    </button>
-                    <h1 className="text-xl font-bold text-white">Manager</h1>
-                </div>
                 <header className="bg-gradient-to-b from-slate-800 to-slate-900 p-6 rounded-3xl mb-8 shadow-2xl flex justify-between items-center border border-white/5 mx-auto max-w-6xl">
                     <div className="flex flex-col">
                         <h1 className="text-xl font-bold text-white tracking-wider">YouTube Manager <span className="text-red-500">PRO</span></h1>
@@ -327,6 +325,6 @@ export default function Manager() {
                     </div>
                 </div>
             </main>
-        </div >
+        </div>
     );
 }

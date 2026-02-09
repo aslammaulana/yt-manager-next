@@ -26,6 +26,7 @@ import {
     MoreVertical
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
+import MobileHeader from "@/components/MobileHeader";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -378,26 +379,24 @@ export default function Dashboard() {
             {/* SIDEBAR */}
             <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+            {/* Mobile Header */}
+            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+
             {/* MAIN */}
             <main className="p-6 md:p-10 w-full overflow-x-hidden">
                 {/* TOPBAR */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 text-gray-400 hover:text-white">
-                            <Menu size={24} />
-                        </button>
-                        <div>
-                            <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
-                            <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
-                            <div className={`inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
-                                <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
-                                <span id="statusText">{statusMsg}</span>
-                            </div>
+                    <div>
+                        <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
+                        <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
+                        <div className={`inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
+                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
+                            <span id="statusText">{statusMsg}</span>
                         </div>
                     </div>
 
                     <div className="flex gap-4 items-center">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
                             <Search size={16} className="text-gray-400" />
                             <input
                                 type="text"
@@ -407,10 +406,10 @@ export default function Dashboard() {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all bg-white/5 text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
+                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-white/5 text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
                             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
-                        <button onClick={googleSignIn} className="px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all bg-linear-to-br from-blue-500 to-cyan-400 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)] shadow-lg shadow-cyan-500/20" title="Add another YouTube Account">
+                        <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-linear-to-br from-blue-500 to-cyan-400 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)] shadow-lg shadow-cyan-500/20" title="Add another YouTube Account">
                             <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
                         </button>
                     </div>
@@ -418,44 +417,44 @@ export default function Dashboard() {
 
 
                 {/* STATS CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-[13px] text-slate-400 font-medium">TOTAL SUBSCRIBERS</div>
-                            <Users size={18} className="text-cyan-400" />
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5 mb-8">
+                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
+                        <div className="flex justify-between items-center mb-1 md:mb-2">
+                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">SUBSCRIBERS</div>
+                            <Users size={14} className="text-cyan-400 md:w-[18px] md:h-[18px]" />
                         </div>
-                        <div className="text-3xl font-extrabold tracking-tight my-2 text-cyan-400">{formatNumber(totalSubs)}</div>
-                        <div className="text-xs text-gray-400">Semua Channel</div>
+                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-cyan-400">{formatNumber(totalSubs)}</div>
+                        <div className="text-[10px] md:text-xs text-gray-400">Semua Channel</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-[13px] text-slate-400 font-medium">TOTAL VIEWS</div>
-                            <Eye size={18} className="text-blue-400" />
+                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                        <div className="flex justify-between items-center mb-1 md:mb-2">
+                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">TOTAL VIEWS</div>
+                            <Eye size={14} className="text-blue-400 md:w-[18px] md:h-[18px]" />
                         </div>
-                        <div className="text-3xl font-extrabold tracking-tight my-2">{formatNumber(totalViews)}</div>
+                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{formatNumber(totalViews)}</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-[13px] text-slate-400 font-medium">REALTIME 48H</div>
-                            <Activity size={18} className="text-yellow-400" />
+                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                        <div className="flex justify-between items-center mb-1 md:mb-2">
+                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">REALTIME 48H</div>
+                            <Activity size={14} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                         </div>
-                        <div className="text-3xl font-extrabold tracking-tight my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
+                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-[13px] text-slate-400 font-medium">ACTIVE CHANNELS</div>
-                            <Zap size={18} className="text-green-400" />
+                    <div className="bg-white/5 border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
+                        <div className="flex justify-between items-center mb-1 md:mb-2">
+                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">CHANNELS</div>
+                            <Zap size={14} className="text-green-400 md:w-[18px] md:h-[18px]" />
                         </div>
-                        <div className="text-3xl font-extrabold tracking-tight my-2">{totalChannel}</div>
-                        <div className="text-xs text-gray-400">Last: {lastUpdate}</div>
+                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{totalChannel}</div>
+                        <div className="text-[10px] md:text-xs text-gray-400 truncate">Last: {lastUpdate}</div>
                     </div>
                 </div>
 
                 {/* TABLE */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md mt-5">
+                <div className="bg-white/5 border border-white/10 rounded-lg backdrop-blur-md mt-5">
                     <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center">
                         <div className="text-lg font-bold">Channel List</div>
-                        <div className="flex gap-2">
+                        <div className="hidden md:flex gap-2">
                             <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors" title="Salin JSON Channel">
                                 <Copy size={16} /> Salin Data
                             </button>
@@ -470,7 +469,7 @@ export default function Dashboard() {
                             {channels.map((ch, idx) => {
                                 if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
                                 return (
-                                    <div key={idx} className="bg-[#1e1e1e] border border-gray-800 rounded-xl p-4 flex flex-col gap-3 relative">
+                                    <div key={idx} className="bg-[#101828] border border-gray-800 rounded-lg p-4 flex flex-col gap-3 relative">
                                         <div className="flex items-center gap-3">
                                             <img src={ch.thumbnail} alt="" className="w-10 h-10 rounded-full border border-gray-700" />
                                             <div>
@@ -591,7 +590,7 @@ export default function Dashboard() {
                 {
                     showPasteModal && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                            <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-6 w-full max-w-lg shadow-2xl">
+                            <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-6 w-full max-w-lg shadow-2xl">
                                 <h3 className="text-xl font-bold mb-4 text-white">Tempel Data Channel</h3>
                                 <textarea
                                     className="w-full h-40 bg-[#0f0f0f] border border-gray-700 rounded-lg p-3 text-sm text-gray-300 focus:outline-none focus:border-cyan-500 transition mb-4"

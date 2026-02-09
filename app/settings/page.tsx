@@ -4,8 +4,9 @@ import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Settings, Key, Mail, Shield, LayoutDashboard, CheckCircle, AlertCircle, Eye, EyeOff, Menu } from "lucide-react";
+import { Settings, Key, Mail, Shield, LayoutDashboard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
+import MobileHeader from "@/components/MobileHeader";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -93,19 +94,15 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
             <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+            {/* Mobile Header */}
+            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+
             <main className="p-6 md:p-10 w-full overflow-x-hidden font-sans text-white">
-                <div className="flex items-center gap-4 mb-6 md:hidden">
-                    <button onClick={() => setSidebarOpen(true)} className="p-2 text-gray-400 hover:text-white">
-                        <Menu size={24} />
-                    </button>
-                    <h1 className="text-xl font-bold text-white">Settings</h1>
-                </div>
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold flex items-center gap-3">
-                                <Settings size={32} className="text-cyan-500" /> Account Settings
+                            <h1 className="text-3xl font-bold flex items-center gap-3"> Account Settings
                             </h1>
                             <p className="text-gray-400 text-sm mt-1">Kelola akun dan keamanan Anda</p>
                         </div>

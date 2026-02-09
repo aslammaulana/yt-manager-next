@@ -122,6 +122,15 @@ export default function Sidebar({
                                 <span className="font-semibold text-sm">Kelola User</span>
                             </Link>
                         )}
+
+                        {/* Sign Out Button */}
+                        <button
+                            onClick={handleSignOut}
+                            className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-sm font-semibold border border-transparent hover:border-red-500/20 mt-2"
+                        >
+                            <LogOut size={18} />
+                            <span className="font-semibold text-sm">Sign Out</span>
+                        </button>
                     </nav>
 
                     {/* Example of new nav items structure from request, disabled/hidden for now unless needed */}
@@ -137,13 +146,6 @@ export default function Sidebar({
                 {/* Footer Status */}
                 <div className="p-4 border-t border-gray-800 bg-[#0d131f]">
                     <div className="flex flex-col gap-3">
-                        <button
-                            onClick={handleSignOut}
-                            className="flex items-center gap-3 px-4 py-2 w-full rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-sm font-semibold border border-transparent hover:border-red-500/20"
-                        >
-                            <LogOut size={16} />
-                            Sign Out
-                        </button>
 
                         <div className="flex items-center gap-3 px-2 pt-2 border-t border-gray-800/50">
                             <div className="relative">
