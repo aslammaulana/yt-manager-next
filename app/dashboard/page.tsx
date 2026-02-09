@@ -565,9 +565,15 @@ export default function Dashboard() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4.5 text-sm">
-                                                <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos">
-                                                    <Video size={16} /> <span className="text-xs">Lihat</span>
-                                                </Link>
+                                                {ch.isExpired ? (
+                                                    <span className="text-gray-600 cursor-not-allowed flex items-center gap-2">
+                                                        <Video size={16} /> <span className="text-xs">Lihat</span>
+                                                    </span>
+                                                ) : (
+                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos">
+                                                        <Video size={16} /> <span className="text-xs">Lihat</span>
+                                                    </Link>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4.5 text-sm text-center">
                                                 <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
