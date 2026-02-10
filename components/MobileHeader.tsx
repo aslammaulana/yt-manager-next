@@ -11,7 +11,7 @@ export default function MobileHeader({ onMenuClick }: MobileHeaderProps) {
     return (
         <header className="md:hidden flex items-center justify-between p-4  pl-6 border-b border-gray-800 bg-[#101828] sticky top-0 z-30">
             <Link href="/dashboard" className="flex items-center gap-2">
-                <span className="font-bold text-lg text-white">YT Manager</span>
+                <span className="font-bold text-lg text-white">YouTube Manager</span>
             </Link>
             <button
                 onClick={onMenuClick}
