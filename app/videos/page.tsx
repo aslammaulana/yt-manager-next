@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Script from "next/script";
-import { ArrowLeft, Play, ThumbsUp, MessageCircle, Eye, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, Play, ThumbsUp, MessageCircle, Eye, Calendar, ExternalLink, Video } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import AppSidebar from "@/components/AppSidebar";
