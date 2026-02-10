@@ -81,7 +81,7 @@ export default function Sidebar({
                             href="/dashboard"
                             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/dashboard"
                                 ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                : "text-gray-400 hover:bg-[#a5a5a518] hover:text-gray-200 border border-transparent"
+                                : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
                                 }`}
                             onClick={onClose}
                         >
@@ -91,7 +91,7 @@ export default function Sidebar({
 
                         <div
                             onClick={(e) => { e.preventDefault(); googleSignIn(); onClose(); }}
-                            className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer text-gray-400 hover:bg-[#a5a5a518] hover:text-gray-200 border border-transparent"
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
                         >
                             <Upload size={18} />
                             <span className="font-semibold text-sm">Tambah Channel</span>
@@ -101,7 +101,7 @@ export default function Sidebar({
                             href="/settings"
                             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/settings"
                                 ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                : "text-gray-400 hover:bg-[#a5a5a518] hover:text-gray-200 border border-transparent"
+                                : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
                                 }`}
                             onClick={onClose}
                         >
@@ -114,7 +114,7 @@ export default function Sidebar({
                                 href="/admin"
                                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/admin"
                                     ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                    : "text-gray-400 hover:bg-[#a5a5a518] hover:text-gray-200 border border-transparent"
+                                    : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
                                     }`}
                                 onClick={onClose}
                             >
@@ -126,21 +126,12 @@ export default function Sidebar({
                         {/* Sign Out Button */}
                         <button
                             onClick={handleSignOut}
-                            className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-sm font-semibold border border-transparent hover:border-red-500/20 mt-2"
+                            className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-sm font-semibold border  hover:border-red-500/20 mt-2"
                         >
                             <LogOut size={18} />
                             <span className="font-semibold text-sm">Sign Out</span>
                         </button>
                     </nav>
-
-                    {/* Example of new nav items structure from request, disabled/hidden for now unless needed */}
-                    {/* <nav className="space-y-1.5">
-                        <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Workspace</h3>
-                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:bg-[#a5a5a518] hover:text-gray-200 border border-transparent cursor-not-allowed opacity-50">
-                             <MessageSquare size={18} />
-                             <span className="font-semibold text-sm">Chat (Coming Soon)</span>
-                        </div>
-                    </nav> */}
                 </div>
 
                 {/* Footer Status */}

@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020617] text-white min-h-screen overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#020617] text-white min-h-screen overflow-x-hidden selection:bg-[#155dfc]/30 selection:text-[#93bbff]`}>
         {/* Background Glow */}
         <div className="fixed inset-[-20%] z-0 pointer-events-none blur-[60px]"
           style={{

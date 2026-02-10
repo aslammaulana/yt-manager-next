@@ -58,7 +58,7 @@ export default function PricingPage() {
                         <a
                             href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20tertarik%20upgrade%20Plan%20Pro%20YT%20Manager"
                             target="_blank"
-                            className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg text-center transition flex items-center justify-center gap-2"
+                            className="bg-[#155dfc] hover:bg-[#407bfa] text-white font-bold py-3 px-6 rounded-lg text-center transition flex items-center justify-center gap-2"
                         >
                             Contact Admin to Upgrade <ArrowRight size={16} />
                         </a>

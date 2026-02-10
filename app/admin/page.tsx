@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, Shield, ShieldAlert, CheckCircle, XCircle, RefreshCw, LayoutDashboard } from "lucide-react";
+import { Users, Shield, ShieldAlert, CheckCircle, XCircle, RefreshCw, LayoutDashboard, Search } from "lucide-react";
 import Link from 'next/link';
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
@@ -24,6 +24,7 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [search, setSearch] = useState('');
 
     const fetchProfiles = async () => {
         setLoading(true);
@@ -80,179 +81,192 @@ export default function AdminPage() {
         }
     };
 
+    const filteredProfiles = profiles.filter(p =>
+        p.email?.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
             <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            {/* Mobile Header */}
-            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+            <main className="w-full overflow-x-hidden font-sans text-white">
+                {/* Mobile Header */}
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
 
-            <main className="p-6 md:p-10 w-full overflow-x-hidden font-sans text-white">
-                <div className="max-w-6xl mx-auto">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold flex items-center gap-3"> Admin Access Control
-                            </h1>
-                            <p className="text-gray-400 text-sm mt-1">Manage user roles and permissions</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <Link href="/dashboard" className="flex items-center gap-2 bg-[#1e1e1e] hover:bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-gray-700 transition text-[14px]">
-                                <LayoutDashboard size={16} /> Back to Dashboard
-                            </Link>
-                            <button onClick={fetchProfiles} className="flex text-[14px] items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition">
-                                <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Table (Desktop) & Cards (Mobile) */}
-                    <div className="">
-                        {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-x-auto bg-[#1a2234] border border-white/30 rounded-lg shadow-2xl">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-[#101828] text-gray-400 text-xs uppercase tracking-wider">
-                                        <th className="p-4 border-b border-gray-700 font-semibold">User / Email</th>
-                                        <th className="p-4 border-b border-gray-700 font-semibold">Current Role</th>
-                                        <th className="p-4 border-b border-gray-700 font-semibold">Actions</th>
-                                        <th className="p-4 border-b border-gray-700 font-semibold text-right">Joined At</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-800">
-                                    {loading && (
-                                        <tr><td colSpan={4} className="p-8 text-center text-gray-500">Loading users...</td></tr>
-                                    )}
-                                    {!loading && profiles.length === 0 && (
-                                        <tr><td colSpan={4} className="p-8 text-center text-gray-500">No users found</td></tr>
-                                    )}
-                                    {!loading && profiles.map((user) => (
-                                        <tr key={user.id} className="hover:bg-[#101828]/80 transition duration-150">
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-linear-to-tr from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
-                                                        {user.email?.substring(0, 2).toUpperCase() || "??"}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-semibold text-sm">{user.email || "No email"}</div>
-                                                        <div className="text-[10px] text-gray-500 font-mono">{user.id}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                {getRoleBadge(user.role)}
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2">
-                                                    {updating === user.id ? (
-                                                        <span className="text-xs text-blue-400 animate-pulse">Updating...</span>
-                                                    ) : (
-                                                        <>
-                                                            {user.role !== 'admin' && (
-                                                                <button
-                                                                    onClick={() => updateRole(user.id, 'admin')}
-                                                                    className="p-1.5 hover:bg-purple-500/20 text-gray-400 hover:text-purple-400 rounded transition"
-                                                                    title="Promote to Admin"
-                                                                >
-                                                                    <ShieldAlert size={16} />
-                                                                </button>
-                                                            )}
-                                                            {user.role !== 'editor' && (
-                                                                <button
-                                                                    onClick={() => updateRole(user.id, 'editor')}
-                                                                    className="p-1.5 hover:bg-green-500/20 text-gray-400 hover:text-green-400 rounded transition"
-                                                                    title="Set as Editor"
-                                                                >
-                                                                    <CheckCircle size={16} />
-                                                                </button>
-                                                            )}
-                                                            {user.role !== 'no_access' && (
-                                                                <button
-                                                                    onClick={() => updateRole(user.id, 'no_access')}
-                                                                    className="p-1.5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded transition"
-                                                                    title="Revoke Access"
-                                                                >
-                                                                    <XCircle size={16} />
-                                                                </button>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-right text-xs text-gray-500">
-                                                {new Date(user.created_at).toLocaleDateString()}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Mobile Box View */}
-                        <div className="md:hidden flex flex-col gap-5  rounded-lg">
-                            {loading && <div className="p-8 text-center text-gray-500">Loading users...</div>}
-                            {!loading && profiles.length === 0 && <div className="p-8 text-center text-gray-500">No users found</div>}
-                            {!loading && profiles.map((user) => (
-                                <div key={user.id} className=" flex flex-col gap-3 bg-[#1a2234] border border-white/30 rounded-lg">
-                                    {/* User Info */}
-                                    <div className="p-4 flex items-center gap-3 ">
-                                        <div className="w-10 h-10 rounded-full bg-linear-to-tr from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
-                                            {user.email?.substring(0, 2).toUpperCase() || "??"}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-semibold text-sm break-all">{user.email || "No email"}</div>
-                                            <div className="text-[10px] text-gray-500 font-mono mt-0.5 truncate">{user.id}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Role Badge */}
-                                    <div className="flex items-center gap-2 px-4">
-
-                                        {getRoleBadge(user.role)}
-                                    </div>
-
-                                    <div className="p-4 flex items-center justify-between pt-2 border-t border-gray-800/50 mt-1 bg-[#101828] rounded-lg">
-                                        <div className="text-xs text-gray-500">
-                                            Joined: {new Date(user.created_at).toLocaleDateString()}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {updating === user.id ? (
-                                                <span className="text-xs text-blue-400 animate-pulse">Updating...</span>
-                                            ) : (
-                                                <>
-                                                    {user.role !== 'admin' && (
-                                                        <button
-                                                            onClick={() => updateRole(user.id, 'admin')}
-                                                            className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded transition"
-                                                            title="Promote to Admin"
-                                                        >
-                                                            <ShieldAlert size={16} />
-                                                        </button>
-                                                    )}
-                                                    {user.role !== 'editor' && (
-                                                        <button
-                                                            onClick={() => updateRole(user.id, 'editor')}
-                                                            className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded transition"
-                                                            title="Set as Editor"
-                                                        >
-                                                            <CheckCircle size={16} />
-                                                        </button>
-                                                    )}
-                                                    {user.role !== 'no_access' && (
-                                                        <button
-                                                            onClick={() => updateRole(user.id, 'no_access')}
-                                                            className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition"
-                                                            title="Revoke Access"
-                                                        >
-                                                            <XCircle size={16} />
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
+                <div className="p-6 md:p-10">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3"> Kelola Users
+                                </h1>
+                                <p className="text-gray-400 text-sm mt-1">Manage user roles and permissions</p>
+                            </div>
+                            <div className="flex gap-3 w-full md:w-auto">
+                                <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2234] border border-white/10 w-full md:w-auto transition-colors focus-within:border-[#155dfc]/50">
+                                    <Search size={16} className="text-gray-400" />
+                                    <input
+                                        type="text"
+                                        className="bg-transparent border-none outline-none text-white w-full md:w-[250px] text-sm placeholder:text-gray-600"
+                                        placeholder="Cari Email..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
                                 </div>
-                            ))}
+                                <button onClick={fetchProfiles} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#1a2234] text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
+                                    <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Table (Desktop) & Cards (Mobile) */}
+                        <div className="">
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto bg-[#1a2234] border border-white/30 rounded-lg shadow-2xl">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#101828] text-gray-400 text-xs uppercase tracking-wider">
+                                            <th className="p-4 border-b border-gray-700 font-semibold">User / Email</th>
+                                            <th className="p-4 border-b border-gray-700 font-semibold">Current Role</th>
+                                            <th className="p-4 border-b border-gray-700 font-semibold">Actions</th>
+                                            <th className="p-4 border-b border-gray-700 font-semibold text-right">Joined At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-800">
+                                        {loading && (
+                                            <tr><td colSpan={4} className="p-8 text-center text-gray-500">Loading users...</td></tr>
+                                        )}
+                                        {!loading && filteredProfiles.length === 0 && (
+                                            <tr><td colSpan={4} className="p-8 text-center text-gray-500">No users found</td></tr>
+                                        )}
+                                        {!loading && filteredProfiles.map((user) => (
+                                            <tr key={user.id} className="hover:bg-[#101828]/80 transition duration-150">
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-linear-to-tr from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                                            {user.email?.substring(0, 2).toUpperCase() || "??"}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-semibold text-sm">{user.email || "No email"}</div>
+                                                            <div className="text-[10px] text-gray-500 font-mono">{user.id}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    {getRoleBadge(user.role)}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        {updating === user.id ? (
+                                                            <span className="text-xs text-blue-400 animate-pulse">Updating...</span>
+                                                        ) : (
+                                                            <>
+                                                                {user.role !== 'admin' && (
+                                                                    <button
+                                                                        onClick={() => updateRole(user.id, 'admin')}
+                                                                        className="p-1.5 hover:bg-purple-500/20 text-gray-400 hover:text-purple-400 rounded transition"
+                                                                        title="Promote to Admin"
+                                                                    >
+                                                                        <ShieldAlert size={16} />
+                                                                    </button>
+                                                                )}
+                                                                {user.role !== 'editor' && (
+                                                                    <button
+                                                                        onClick={() => updateRole(user.id, 'editor')}
+                                                                        className="p-1.5 hover:bg-green-500/20 text-gray-400 hover:text-green-400 rounded transition"
+                                                                        title="Set as Editor"
+                                                                    >
+                                                                        <CheckCircle size={16} />
+                                                                    </button>
+                                                                )}
+                                                                {user.role !== 'no_access' && (
+                                                                    <button
+                                                                        onClick={() => updateRole(user.id, 'no_access')}
+                                                                        className="p-1.5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded transition"
+                                                                        title="Revoke Access"
+                                                                    >
+                                                                        <XCircle size={16} />
+                                                                    </button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-right text-xs text-gray-500">
+                                                    {new Date(user.created_at).toLocaleDateString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Box View */}
+                            <div className="md:hidden flex flex-col gap-5  rounded-lg">
+                                {loading && <div className="p-8 text-center text-gray-500">Loading users...</div>}
+                                {!loading && filteredProfiles.length === 0 && <div className="p-8 text-center text-gray-500">No users found</div>}
+                                {!loading && filteredProfiles.map((user) => (
+                                    <div key={user.id} className=" flex flex-col gap-3 bg-[#1a2234] border border-white/30 rounded-lg">
+                                        {/* User Info */}
+                                        <div className="p-4 flex items-center gap-3 ">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                                {user.email?.substring(0, 2).toUpperCase() || "??"}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-sm break-all">{user.email || "No email"}</div>
+                                                <div className="text-[10px] text-gray-500 font-mono mt-0.5 truncate">{user.id}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Role Badge */}
+                                        <div className="flex items-center gap-2 px-4">
+
+                                            {getRoleBadge(user.role)}
+                                        </div>
+
+                                        <div className="p-4 flex items-center justify-between pt-2 border-t border-gray-800/50 mt-1 bg-[#101828] rounded-lg">
+                                            <div className="text-xs text-gray-500">
+                                                Joined: {new Date(user.created_at).toLocaleDateString()}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {updating === user.id ? (
+                                                    <span className="text-xs text-blue-400 animate-pulse">Updating...</span>
+                                                ) : (
+                                                    <>
+                                                        {user.role !== 'admin' && (
+                                                            <button
+                                                                onClick={() => updateRole(user.id, 'admin')}
+                                                                className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded transition"
+                                                                title="Promote to Admin"
+                                                            >
+                                                                <ShieldAlert size={16} />
+                                                            </button>
+                                                        )}
+                                                        {user.role !== 'editor' && (
+                                                            <button
+                                                                onClick={() => updateRole(user.id, 'editor')}
+                                                                className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded transition"
+                                                                title="Set as Editor"
+                                                            >
+                                                                <CheckCircle size={16} />
+                                                            </button>
+                                                        )}
+                                                        {user.role !== 'no_access' && (
+                                                            <button
+                                                                onClick={() => updateRole(user.id, 'no_access')}
+                                                                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition"
+                                                                title="Revoke Access"
+                                                            >
+                                                                <XCircle size={16} />
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -409,7 +409,7 @@ export default function Dashboard() {
                         <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#1a2234] text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
                             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                         </button>
-                        <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-linear-to-br from-blue-500 to-cyan-400 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)] shadow-lg shadow-cyan-500/20" title="Add another YouTube Account">
+                        <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-[14px] " title="Add another YouTube Account">
                             <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
                         </button>
                     </div>
@@ -418,12 +418,12 @@ export default function Dashboard() {
 
                 {/* STATS CARDS */}
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5 mb-8">
-                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-blue-500 before:to-cyan-400">
+                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-[#155dfc] before:to-[#3d7aff]">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
                             <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">SUBSCRIBERS</div>
-                            <Users size={14} className="text-cyan-400 md:w-[18px] md:h-[18px]" />
+                            <Users size={14} className="text-[#3d7aff] md:w-[18px] md:h-[18px]" />
                         </div>
-                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-cyan-400">{formatNumber(totalSubs)}</div>
+                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-[#548aff]">{formatNumber(totalSubs)}</div>
                         <div className="text-[10px] md:text-xs text-gray-400">Semua Channel</div>
                     </div>
                     <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
@@ -503,7 +503,7 @@ export default function Dashboard() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white p-2 rounded-lg font-bold text-sm transition text-center">
+                                                    <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-[#155dfc] hover:bg-[#407bfa] text-white p-2 rounded-lg font-bold text-sm transition text-center">
                                                         UPLOAD
                                                     </button>
                                                     <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center border border-gray-700">
@@ -524,8 +524,8 @@ export default function Dashboard() {
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Channel Name</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Subs</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Total Views</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Realtime 48H</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Realtime 60M</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">R-48H</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">R-60M</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Upload</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Videos</th>
                                     <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Action</th>
@@ -559,7 +559,7 @@ export default function Dashboard() {
                                                         EXPIRED
                                                     </span>
                                                 ) : (
-                                                    <button onClick={() => handleManagerOpen(ch)} className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-xs font-bold border border-cyan-500/20 cursor-pointer hover:bg-cyan-500/20 transition-colors">
+                                                    <button onClick={() => handleManagerOpen(ch)} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors">
                                                         UPLOAD
                                                     </button>
                                                 )}
@@ -570,11 +570,8 @@ export default function Dashboard() {
                                                         <Video size={16} /> <span className="text-xs">Lihat</span>
                                                     </span>
                                                 ) : (
-                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        <Video size={16} /> <span className="text-xs">Lihat</span>
+                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors" title="View Videos"
+                                                    > <span className="text-xs">LIHAT</span>
                                                     </Link>
                                                 )}
                                             </td>
@@ -616,7 +613,7 @@ export default function Dashboard() {
                                     </button>
                                     <button
                                         onClick={() => { handlePasteSubmit(); setShowPasteModal(false); }}
-                                        className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition"
+                                        className="px-4 py-2 rounded-lg bg-[#155dfc] hover:bg-[#407bfa] text-white font-medium transition"
                                     >
                                         Simpan Data
                                     </button>

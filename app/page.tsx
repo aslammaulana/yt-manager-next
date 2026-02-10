@@ -15,7 +15,7 @@ export default function Home() {
         <h1 className="text-[2.5rem] mb-5 bg-[linear-gradient(90deg,_#22d3ee,_#818cf8)] bg-clip-text text-transparent">Bang Memed YT Manager</h1>
         <p className="text-slate-400 leading-relaxed mb-[30px]">Solusi manajemen multi-channel YouTube terbaik. Pantau statistik, analitik realtime, dan performa video Anda dalam satu dashboard eksklusif.</p>
 
-        <Link href="/dashboard" className="px-10 py-[15px] bg-cyan-400 text-slate-900 rounded-xl font-bold no-underline transition-all duration-300 inline-block cursor-pointer border-none hover:-translate-y-[3px] hover:shadow-[0_10px_20px_rgba(34,211,238,0.3)]">
+        <Link href="/dashboard" className="px-10 py-[15px] bg-[#155dfc] text-white rounded-xl font-bold no-underline transition-all duration-300 inline-block cursor-pointer border-none hover:-translate-y-[3px] hover:bg-[#407bfa] hover:shadow-[0_10px_20px_rgba(21,93,252,0.3)]">
           Masuk ke Dashboard
         </Link>
 
