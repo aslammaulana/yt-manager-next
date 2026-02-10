@@ -570,7 +570,10 @@ export default function Dashboard() {
                                                         <Video size={16} /> <span className="text-xs">Lihat</span>
                                                     </span>
                                                 ) : (
-                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos">
+                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2" title="View Videos"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
                                                         <Video size={16} /> <span className="text-xs">Lihat</span>
                                                     </Link>
                                                 )}

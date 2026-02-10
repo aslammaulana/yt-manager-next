@@ -84,7 +84,9 @@ function VideosContent() {
                 accessToken = account.access_token;
 
                 // Cache token for session (avoids repeated API calls on navigation)
-                sessionStorage.setItem(cacheKey, accessToken);
+                if (accessToken) {
+                    sessionStorage.setItem(cacheKey, accessToken);
+                }
             }
 
             if (!accessToken) {
