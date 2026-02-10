@@ -45,7 +45,7 @@ interface ChannelData {
 
 interface MergedChannel extends ChannelData {
     id: string; // Channel ID
-    realtime: { h48: number; h60: number; error?: string }; // Added h60
+    realtime: { h48: number; error?: string };
     isExpired: boolean;
     emailSource: string;
 }
@@ -123,7 +123,7 @@ export default function Dashboard() {
     // --- Core Sync Logic ---
     // --- Core Sync Logic ---
     const fetchRealtimeStats = async (channelId: string, token: string) => {
-        if (!token) return { h48: 0, h60: 0 };
+        if (!token) return { h48: 0 };
 
         try {
             const now = new Date();
@@ -181,11 +181,11 @@ export default function Dashboard() {
                 }
             }
 
-            return { h48: views48h, h60: 0 };
+            return { h48: views48h };
 
         } catch (e: any) {
             console.error("Critical Realtime Error " + channelId, e);
-            return { h48: 0, h60: 0, error: e.message };
+            return { h48: 0, error: e.message };
         }
     };
 
@@ -243,7 +243,7 @@ export default function Dashboard() {
                     return {
                         ...acc,
                         id: acc.gmail, // Use email as fake ID
-                        realtime: { h48: 0, h60: 0, error: err.message },
+                        realtime: { h48: 0, error: err.message },
                         isExpired: true,
                         emailSource: acc.gmail
                     } as MergedChannel;
@@ -435,7 +435,7 @@ export default function Dashboard() {
                     </div>
                     <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
                         <div className="flex justify-between items-center mb-1 md:mb-2">
-                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">REALTIME 48H</div>
+                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">Penayangan 3D</div>
                             <Activity size={14} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                         </div>
                         <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
@@ -485,14 +485,10 @@ export default function Dashboard() {
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 mt-2 bg-black/20 p-3 rounded-lg">
+                                        <div className="mt-2 bg-black/20 p-3 rounded-lg">
                                             <div className="text-center">
-                                                <div className="text-xs text-gray-500 uppercase">48H Views</div>
+                                                <div className="text-xs text-gray-500 uppercase">3D Views</div>
                                                 <div className="text-yellow-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h48)}</div>
-                                            </div>
-                                            <div className="text-center border-l border-gray-700">
-                                                <div className="text-xs text-gray-500 uppercase">60M Views</div>
-                                                <div className="text-cyan-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h60)}</div>
                                             </div>
                                         </div>
 
@@ -524,8 +520,8 @@ export default function Dashboard() {
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Channel Name</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Subs</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Total Views</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">R-48H</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">R-60M</th>
+                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Penayangan 3D</th>
+
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Upload</th>
                                     <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Videos</th>
                                     <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Action</th>
@@ -533,7 +529,7 @@ export default function Dashboard() {
                             </thead>
                             <tbody className="divide-y divide-white/10">
                                 {loading && (
-                                    <tr><td colSpan={8} className="text-center py-8 text-gray-500">Loading data...</td></tr>
+                                    <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading data...</td></tr>
                                 )}
                                 {!loading && channels.map((ch, idx) => {
                                     if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
@@ -550,9 +546,7 @@ export default function Dashboard() {
                                             <td className="px-6 py-4.5 text-sm text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
                                                 {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
                                             </td>
-                                            <td className="px-6 py-4.5 text-sm text-cyan-400 font-bold">
-                                                {ch.isExpired ? '---' : formatNumber(ch.realtime.h60)}
-                                            </td>
+
                                             <td className="px-6 py-4.5 text-sm">
                                                 {ch.isExpired ? (
                                                     <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
