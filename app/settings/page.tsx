@@ -37,7 +37,15 @@ export default function SettingsPage() {
                 router.push('/login');
                 return;
             }
-            setUser(user);
+
+            // Get detailed profile
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, access_expires_at')
+                .eq('id', user.id)
+                .single();
+
+            setUser({ ...user, profile });
 
             // Check if user has password identity
             const identities = user.identities || [];
@@ -120,6 +128,20 @@ export default function SettingsPage() {
                                             <span className="text-gray-400">Email</span>
                                             <span className="font-medium">{user?.email}</span>
                                         </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-400">Role</span>
+                                            <span className="font-medium capitalize">{user?.profile?.role || 'User'}</span>
+                                        </div>
+
+                                        {user?.profile?.role === 'editor' && user?.profile?.access_expires_at && (
+                                            <div className="flex items-center justify-between bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/20">
+                                                <span className="text-yellow-400">Access Expires</span>
+                                                <span className="font-bold text-yellow-400">
+                                                    {new Date(user.profile.access_expires_at).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-400">Login Methods</span>
                                             <div className="flex gap-2">

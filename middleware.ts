@@ -46,11 +46,22 @@ export async function middleware(request: NextRequest) {
         // Check Role
         const { data: profile } = await supabase
             .from('profiles')
-            .select('role')
+            .select('role, access_expires_at')
             .eq('id', user.id)
             .single();
 
         const role = profile?.role || 'no_access';
+
+        // Check Expiration for Editors
+        if (role === 'editor' && profile?.access_expires_at) {
+            const expiresAt = new Date(profile.access_expires_at).getTime();
+            const now = new Date().getTime();
+
+            if (now > expiresAt) {
+                // Expired: Redirect to Pricing
+                return NextResponse.redirect(new URL('/pricing?expired=true', request.url));
+            }
+        }
 
         // Redirect 'no_access' to Pricing (except settings - they can set password)
         if (role === 'no_access' && !path.startsWith('/pricing') && !path.startsWith('/settings')) {

@@ -16,6 +16,7 @@ interface Profile {
     email: string;
     role: 'admin' | 'editor' | 'no_access';
     created_at: string;
+    access_expires_at?: string | null;
 }
 
 export default function AdminPage() {
@@ -25,6 +26,10 @@ export default function AdminPage() {
     const [updating, setUpdating] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [search, setSearch] = useState('');
+
+    // Duration Modal State
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+    const [showDurationModal, setShowDurationModal] = useState(false);
 
     const fetchProfiles = async () => {
         setLoading(true);
@@ -43,15 +48,32 @@ export default function AdminPage() {
         }
     };
 
-    const updateRole = async (userId: string, newRole: string) => {
+    const updateRole = async (userId: string, newRole: string, duration?: number) => {
+        // If role is editor and no duration selected yet, open modal
+        if (newRole === 'editor' && duration === undefined) {
+            const user = profiles.find(p => p.id === userId);
+            if (user) {
+                setSelectedUser(user);
+                setShowDurationModal(true);
+            }
+            return;
+        }
+
         if (!confirm(`Are you sure you want to change role to ${newRole}?`)) return;
         setUpdating(userId);
+
+        let access_expires_at = null;
+        if (newRole === 'editor' && duration) {
+            const now = new Date();
+            // duration in minutes
+            access_expires_at = new Date(now.getTime() + duration * 60000).toISOString();
+        }
 
         try {
             const response = await fetch('/api/admin/profiles', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, newRole }),
+                body: JSON.stringify({ userId, newRole, access_expires_at }),
             });
 
             if (!response.ok) {
@@ -60,14 +82,25 @@ export default function AdminPage() {
             }
 
             // Optimistic update
-            setProfiles(prev => prev.map(p => p.id === userId ? { ...p, role: newRole as any } : p));
+            setProfiles(prev => prev.map(p => p.id === userId ? { ...p, role: newRole as any, access_expires_at } : p));
         } catch (e: any) {
             alert("Update failed: " + e.message);
             fetchProfiles(); // Refresh to get correct state
         } finally {
             setUpdating(null);
+            setShowDurationModal(false);
+            setSelectedUser(null);
         }
     };
+
+    // Duration Options
+    const durations = [
+        { label: '2 Menit (Test)', value: 2 },
+        { label: '2 Hari', value: 2 * 24 * 60 },
+        { label: '1 Bulan', value: 30 * 24 * 60 },
+        { label: '2 Bulan', value: 60 * 24 * 60 },
+        { label: '3 Bulan', value: 90 * 24 * 60 },
+    ];
 
     useEffect(() => {
         fetchProfiles();
@@ -153,7 +186,14 @@ export default function AdminPage() {
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    {getRoleBadge(user.role)}
+                                                    <div className="flex flex-col gap-1">
+                                                        {getRoleBadge(user.role)}
+                                                        {user.access_expires_at && user.role === 'editor' && (
+                                                            <span className="text-[10px] text-gray-400">
+                                                                Exp: {new Date(user.access_expires_at).toLocaleString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-2">
@@ -219,9 +259,13 @@ export default function AdminPage() {
                                         </div>
 
                                         {/* Role Badge */}
-                                        <div className="flex items-center gap-2 px-4">
-
+                                        <div className="flex items-center gap-2 px-4 justify-between">
                                             {getRoleBadge(user.role)}
+                                            {user.access_expires_at && user.role === 'editor' && (
+                                                <span className="text-[10px] text-gray-400 text-right">
+                                                    Exp: {new Date(user.access_expires_at).toLocaleDateString()}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="p-4 flex items-center justify-between pt-2 border-t border-gray-800/50 mt-1 bg-[#101828] rounded-lg">
@@ -270,6 +314,38 @@ export default function AdminPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Duration Modal */}
+                {showDurationModal && selectedUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-6 w-full max-w-sm shadow-2xl">
+                            <h3 className="text-lg font-bold mb-4 text-white">Set Editor Duration</h3>
+                            <p className="text-sm text-gray-400 mb-4">
+                                Select how long <b>{selectedUser.email}</b> should have editor access.
+                            </p>
+                            <div className="grid gap-2">
+                                {durations.map((d) => (
+                                    <button
+                                        key={d.value}
+                                        onClick={() => updateRole(selectedUser.id, 'editor', d.value)}
+                                        className="text-left px-4 py-3 rounded-lg bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white text-sm font-medium transition flex justify-between items-center group"
+                                    >
+                                        {d.label}
+                                        <span className="opacity-0 group-hover:opacity-100 text-blue-400">Select</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <button
+                                    onClick={() => { setShowDurationModal(false); setSelectedUser(null); }}
+                                    className="text-gray-400 hover:text-white text-sm"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

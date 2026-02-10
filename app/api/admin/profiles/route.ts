@@ -60,7 +60,7 @@ export async function PATCH(req: NextRequest) {
         }
 
         // Get request body
-        const { userId, newRole } = await req.json();
+        const { userId, newRole, access_expires_at } = await req.json();
 
         if (!userId || !newRole) {
             return NextResponse.json({ error: "Missing userId or newRole" }, { status: 400 });
@@ -68,9 +68,16 @@ export async function PATCH(req: NextRequest) {
 
         // Update role using admin client to bypass RLS
         const adminClient = createAdminClient();
+        const updateData: any = { role: newRole };
+
+        // Only update expiration if provided (can be null to clear it)
+        if (access_expires_at !== undefined) {
+            updateData.access_expires_at = access_expires_at;
+        }
+
         const { error } = await adminClient
             .from('profiles')
-            .update({ role: newRole })
+            .update(updateData)
             .eq('id', userId);
 
         if (error) throw error;
