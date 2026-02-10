@@ -387,7 +387,7 @@ export default function Dashboard() {
                 {/* TOPBAR */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
                     <div>
-                        <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
+                        <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard</h1>
                         <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
                         <div className={`inline-flex items-center gap-2 bg-[#1a2234] px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
                             <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
