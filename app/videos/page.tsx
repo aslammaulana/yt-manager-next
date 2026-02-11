@@ -7,7 +7,9 @@ import { ArrowLeft, Play, ThumbsUp, MessageCircle, Eye, Calendar, ExternalLink, 
 import Link from "next/link";
 import Image from "next/image";
 import AppSidebar from "@/components/AppSidebar";
+import DesktopHeader from "@/components/DesktopHeader";
 import MobileHeader from "@/components/MobileHeader";
+import { createClient } from '@/utils/supabase/client';
 
 interface VideoItem {
     id: string;
@@ -35,6 +37,18 @@ function VideosContent() {
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [error, setError] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Auth State
+    const supabase = createClient();
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) setUser(session.user);
+        };
+        fetchSession();
+    }, []);
 
     // Initialize GAPI
     const initGapi = () => {
@@ -179,144 +193,149 @@ function VideosContent() {
     if (!channelId || !email) return <div className="p-10 text-center text-red-500">Missing parameters.</div>;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
+        <div className="relative z-1 min-h-screen bg-background">
             <Script src="https://apis.google.com/js/api.js" onLoad={initGapi} />
 
+            {/* DESKTOP HEADER - FIXED TOP */}
+            <DesktopHeader user={user} />
+
             {/* SIDEBAR */}
-            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} withHeader={true} />
 
-            {/* Mobile Header */}
-            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+            {/* RIGHT COLUMN WRAPPER */}
+            <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
 
-            <main className="p-6 md:p-10 w-full overflow-x-hidden text-white font-sans bg-[#0f0f0f] md:bg-transparent">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
-                    <Link href="/dashboard" className="p-2 hover:bg-gray-800 rounded-full transition">
-                        <ArrowLeft size={24} />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold">Channel Videos</h1>
-                        <p className="text-gray-400 text-sm">Most recent 50 uploads</p>
+                <main className="p-6 md:p-10 w-full overflow-x-hidden text-foreground font-sans">
+                    {/* Header */}
+                    <div className="flex items-center gap-4 mb-8">
+                        <Link href="/dashboard" className="p-2 hover:bg-muted rounded-full transition">
+                            <ArrowLeft size={24} />
+                        </Link>
+                        <div>
+                            <h1 className="text-2xl font-bold">Channel Videos</h1>
+                            <p className="text-muted-foreground text-sm">Most recent 50 uploads</p>
+                        </div>
                     </div>
-                </div>
 
-                {/* Error State */}
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6">
-                        {error}
-                    </div>
-                )}
+                    {/* Error State */}
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6">
+                            {error}
+                        </div>
+                    )}
 
-                {/* Loading State */}
-                {loading && !error && (
-                    <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
-                    </div>
-                )}
+                    {/* Loading State */}
+                    {loading && !error && (
+                        <div className="flex justify-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
+                        </div>
+                    )}
 
-                {/* Video Grid */}
-                {!loading && !error && videos.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                        <Video size={48} className="mb-4 opacity-50" />
-                        <p className="text-lg font-medium">No videos found.</p>
-                        <p className="text-sm">This channel hasn't uploaded any videos yet.</p>
-                    </div>
-                )}
+                    {/* Video Grid */}
+                    {!loading && !error && videos.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                            <Video size={48} className="mb-4 opacity-50" />
+                            <p className="text-lg font-medium">No videos found.</p>
+                            <p className="text-sm">This channel hasn't uploaded any videos yet.</p>
+                        </div>
+                    )}
 
-                {!loading && !error && videos.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {videos.map((video) => (
-                            <div
-                                key={video.id}
-                                onClick={() => fetchVideoDetails(video)}
-                                className="group cursor-pointer bg-[#1e1e1e] rounded-xl overflow-hidden hover:ring-2 hover:ring-cyan-500/50 transition duration-300"
-                            >
-                                <div className="relative aspect-video w-full overflow-hidden">
-                                    <img
-                                        src={video.thumbnail}
-                                        alt={video.title}
-                                        className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                                </div>
-                                <div className="p-4">
-                                    <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-cyan-400 transition">
-                                        {video.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <Calendar size={12} />
-                                        <span>{video.publishedAt}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Details Modal */}
-                {selectedVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedVideo(null)}>
-                        <div className="bg-[#1e1e1e] w-full max-w-2xl rounded-2xl overflow-hidden border border-gray-800 shadow-2xl" onClick={e => e.stopPropagation()}>
-                            {/* Modal Header */}
-                            <div className="relative aspect-video w-full">
-                                <img src={selectedVideo.thumbnail} className="w-full h-full object-cover opacity-50" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] to-transparent"></div>
-                                <button
-                                    onClick={() => setSelectedVideo(null)}
-                                    className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 transition"
+                    {!loading && !error && videos.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {videos.map((video) => (
+                                <div
+                                    key={video.id}
+                                    onClick={() => fetchVideoDetails(video)}
+                                    className="group cursor-pointer bg-card border border-border rounded-xl overflow-hidden hover:ring-2 hover:ring-cyan-500/50 transition duration-300"
                                 >
-                                    <ArrowLeft size={20} />
-                                </button>
-                                <div className="absolute bottom-6 left-6 right-6">
-                                    <h2 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">{selectedVideo.title}</h2>
-                                    <div className="flex items-center gap-4 text-sm text-gray-300">
-                                        <span>{selectedVideo.publishedAt}</span>
-                                        {detailsLoading && <span className="animate-pulse">Loading stats...</span>}
+                                    <div className="relative aspect-video w-full overflow-hidden">
+                                        <img
+                                            src={video.thumbnail}
+                                            alt={video.title}
+                                            className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-cyan-400 transition">
+                                            {video.title}
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Calendar size={12} />
+                                            <span>{video.publishedAt}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ))}
+                        </div>
+                    )}
 
-                            {/* Modal Body */}
-                            <div className="p-6">
-                                <div className="grid grid-cols-3 gap-4 mb-6">
-                                    <div className="bg-[#2a2a2a] p-3 rounded-lg text-center">
-                                        <div className="flex justify-center mb-1 text-blue-400"><Eye size={20} /></div>
-                                        <div className="text-lg font-bold">{selectedVideo.views || "-"}</div>
-                                        <div className="text-xs text-gray-500 uppercase">Views</div>
-                                    </div>
-                                    <div className="bg-[#2a2a2a] p-3 rounded-lg text-center">
-                                        <div className="flex justify-center mb-1 text-green-400"><ThumbsUp size={20} /></div>
-                                        <div className="text-lg font-bold">{selectedVideo.likes || "-"}</div>
-                                        <div className="text-xs text-gray-500 uppercase">Likes</div>
-                                    </div>
-                                    <div className="bg-[#2a2a2a] p-3 rounded-lg text-center">
-                                        <div className="flex justify-center mb-1 text-purple-400"><MessageCircle size={20} /></div>
-                                        <div className="text-lg font-bold">{selectedVideo.comments || "-"}</div>
-                                        <div className="text-xs text-gray-500 uppercase">Comments</div>
-                                    </div>
-                                </div>
-
-                                {selectedVideo.description && (
-                                    <div className="bg-[#0f0f0f] p-4 rounded-xl max-h-40 overflow-y-auto text-sm text-gray-400 mb-4 whitespace-pre-wrap">
-                                        {selectedVideo.description}
-                                    </div>
-                                )}
-
-                                <div className="flex justify-end gap-3">
-                                    <a
-                                        href={`https://www.youtube.com/watch?v=${selectedVideo.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                    {/* Details Modal */}
+                    {selectedVideo && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedVideo(null)}>
+                            <div className="bg-card w-full max-w-2xl rounded-2xl overflow-hidden border border-border shadow-2xl" onClick={e => e.stopPropagation()}>
+                                {/* Modal Header */}
+                                <div className="relative aspect-video w-full">
+                                    <img src={selectedVideo.thumbnail} className="w-full h-full object-cover opacity-50" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
+                                    <button
+                                        onClick={() => setSelectedVideo(null)}
+                                        className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 transition"
                                     >
-                                        <Play size={16} /> Watch on YouTube
-                                    </a>
+                                        <ArrowLeft size={20} />
+                                    </button>
+                                    <div className="absolute bottom-6 left-6 right-6">
+                                        <h2 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">{selectedVideo.title}</h2>
+                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                            <span>{selectedVideo.publishedAt}</span>
+                                            {detailsLoading && <span className="animate-pulse">Loading stats...</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-6">
+                                    <div className="grid grid-cols-3 gap-4 mb-6">
+                                        <div className="bg-muted p-3 rounded-lg text-center">
+                                            <div className="flex justify-center mb-1 text-blue-400"><Eye size={20} /></div>
+                                            <div className="text-lg font-bold">{selectedVideo.views || "-"}</div>
+                                            <div className="text-xs text-muted-foreground uppercase">Views</div>
+                                        </div>
+                                        <div className="bg-muted p-3 rounded-lg text-center">
+                                            <div className="flex justify-center mb-1 text-green-400"><ThumbsUp size={20} /></div>
+                                            <div className="text-lg font-bold">{selectedVideo.likes || "-"}</div>
+                                            <div className="text-xs text-muted-foreground uppercase">Likes</div>
+                                        </div>
+                                        <div className="bg-muted p-3 rounded-lg text-center">
+                                            <div className="flex justify-center mb-1 text-purple-400"><MessageCircle size={20} /></div>
+                                            <div className="text-lg font-bold">{selectedVideo.comments || "-"}</div>
+                                            <div className="text-xs text-muted-foreground uppercase">Comments</div>
+                                        </div>
+                                    </div>
+
+                                    {selectedVideo.description && (
+                                        <div className="bg-background p-4 rounded-xl max-h-40 overflow-y-auto text-sm text-muted-foreground mb-4 whitespace-pre-wrap">
+                                            {selectedVideo.description}
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-end gap-3">
+                                        <a
+                                            href={`https://www.youtube.com/watch?v=${selectedVideo.id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                                        >
+                                            <Play size={16} /> Watch on YouTube
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </main>
+                    )}
+                </main>
+            </div>
         </div>
     );
 }

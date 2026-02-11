@@ -9,7 +9,7 @@ import Sidebar from "./Sidebar";
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "262964938761-4e41cgkbud489toac5midmamoecb3jrq.apps.googleusercontent.com";
 const SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.upload";
 
-export default function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function AppSidebar({ isOpen, onClose, withHeader = false }: { isOpen: boolean; onClose: () => void; withHeader?: boolean }) {
     const router = useRouter();
     const supabase = createClient();
     const [role, setRole] = useState<string>("no_access");
@@ -54,6 +54,7 @@ export default function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClo
             handleSignOut={handleSignOut}
             isOpen={isOpen}
             onClose={onClose}
+            withHeader={withHeader}
         />
     );
 }

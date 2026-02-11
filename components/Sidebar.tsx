@@ -21,6 +21,7 @@ interface SidebarProps {
     handleSignOut: () => Promise<void>;
     isOpen: boolean;
     onClose: () => void;
+    withHeader?: boolean;
 }
 
 export default function Sidebar({
@@ -28,7 +29,8 @@ export default function Sidebar({
     googleSignIn,
     handleSignOut,
     isOpen,
-    onClose
+    onClose,
+    withHeader = false
 }: SidebarProps) {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
@@ -53,101 +55,103 @@ export default function Sidebar({
 
             <div
                 ref={sidebarRef}
-                className={`fixed inset-y-0 left-0 z-50 w-80 bg-[#101828] border-r border-gray-800 transform transition-transform duration-300 ease-in-out 
+                className={`fixed top-0 bottom-0 left-0 z-50 w-[330px] bg-[#15171c] md:bg-[#f3f6f9] md:dark:bg-[#101116] transform transition-transform duration-300 ease-in-out p-0 md:p-10 md:pr-5 md:pt-10 h-screen md:h-auto
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-                md:sticky md:top-0 md:translate-x-0 flex flex-col h-screen shadow-2xl md:shadow-none`}
+                md:translate-x-0 flex flex-col ${withHeader ? 'md:top-[72px]' : ''} shadow-2xl md:shadow-none  `}
             >
-                {/* Header */}
-                <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-[#101828]">
-                    <Link href="/" className="group cursor-pointer">
-                        <h2 className="font-bold text-lg flex items-center gap-2 text-white">
-                            <div className="bg-blue-600/20 p-1.5 rounded-lg group-hover:bg-blue-600/30 transition-colors">
-                                <Database className="text-blue-500" size={20} />
-                            </div>
-                            YT Manager
-                        </h2>
-                    </Link>
-                    <button onClick={onClose} className="md:hidden text-gray-400 hover:text-white">
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8">
-                    {/* 1. Navigation Menu */}
-                    <nav className="space-y-1.5">
-                        <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Main Menu</h3>
-
-                        <Link
-                            href="/dashboard"
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/dashboard"
-                                ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
-                                }`}
-                            onClick={onClose}
-                        >
-                            <LayoutDashboard size={18} />
-                            <span className="font-semibold text-sm">Dashboard</span>
+                <div className="flex flex-col h-full md:h-auto border-none md:border md:border-[#ffffff1a] rounded-none md:rounded-lg shadow-none md:shadow-[0_0px_15px_#02020210]">
+                    {/* Header */}
+                    <div className="p-4 border-b border-border flex items-center justify-between bg-card md:hidden ">
+                        <Link href="/" className="group cursor-pointer">
+                            <h2 className="font-bold text-lg flex items-center gap-2 text-foreground">
+                                <div className="bg-blue-600/20 p-1.5 rounded-lg group-hover:bg-[#0095e8] transition-colors">
+                                    <Database className="text-blue-500" size={20} />
+                                </div>
+                                YT Manager
+                            </h2>
                         </Link>
+                        <button onClick={onClose} className="md:hidden text-muted-foreground hover:text-foreground">
+                            <X size={24} />
+                        </button>
+                    </div>
 
-                        <div
-                            onClick={(e) => { e.preventDefault(); googleSignIn(); onClose(); }}
-                            className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
-                        >
-                            <Upload size={18} />
-                            <span className="font-semibold text-sm">Tambah Channel</span>
-                        </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-card rounded-none md:rounded-tl-lg md:rounded-tr-lg">
+                        {/* 1. Navigation Menu */}
+                        <nav className="space-y-1.5">
+                            <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Main Menu</h3>
 
-                        <Link
-                            href="/settings"
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/settings"
-                                ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
-                                }`}
-                            onClick={onClose}
-                        >
-                            <Settings size={18} />
-                            <span className="font-semibold text-sm">Settings</span>
-                        </Link>
-
-                        {role === 'admin' && (
                             <Link
-                                href="/admin"
-                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/admin"
-                                    ? "bg-blue-600/10 border border-blue-600/30 text-blue-400"
-                                    : "text-gray-400 hover:bg-[#1a2234] hover:text-gray-200 border border-transparent"
+                                href="/dashboard"
+                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/dashboard"
+                                    ? "bg-blue-600/10   text-[#1e1e2d] dark:text-blue-400"
+                                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
                                     }`}
                                 onClick={onClose}
                             >
-                                <Shield size={18} />
-                                <span className="font-semibold text-sm">Kelola User</span>
+                                <LayoutDashboard size={18} />
+                                <span className="font-semibold text-sm">Dashboard</span>
                             </Link>
-                        )}
 
-                        {/* Sign Out Button */}
-                        <button
-                            onClick={handleSignOut}
-                            className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-sm font-semibold border  hover:border-red-500/20 mt-2"
-                        >
-                            <LogOut size={18} />
-                            <span className="font-semibold text-sm">Sign Out</span>
-                        </button>
-                    </nav>
-                </div>
-
-                {/* Footer Status */}
-                <div className="p-4 border-t border-gray-800 bg-[#0d131f]">
-                    <div className="flex flex-col gap-3">
-
-                        <div className="flex items-center gap-3 px-2 ">
-                            <div className="relative">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse relative z-10" />
-                                <div className="absolute inset-0 bg-green-500 blur-[2px] animate-pulse" />
+                            <div
+                                onClick={(e) => { e.preventDefault(); googleSignIn(); onClose(); }}
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                            >
+                                <Upload size={18} />
+                                <span className="font-semibold text-sm">Tambah Channel</span>
                             </div>
-                            <span className="text-xs text-gray-400 font-medium tracking-wide">System Operational</span>
+
+                            <Link
+                                href="/settings"
+                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/settings"
+                                    ? "bg-blue-600/10   text-[#1e1e2d] dark:text-blue-400"
+                                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                                    }`}
+                                onClick={onClose}
+                            >
+                                <Settings size={18} />
+                                <span className="font-semibold text-sm">Settings</span>
+                            </Link>
+
+                            {role === 'admin' && (
+                                <Link
+                                    href="/admin"
+                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/admin"
+                                        ? "bg-blue-600/10   text-[#1e1e2d] dark:text-blue-400"
+                                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                                        }`}
+                                    onClick={onClose}
+                                >
+                                    <Shield size={18} />
+                                    <span className="font-semibold text-sm">Kelola User</span>
+                                </Link>
+                            )}
+
+                            {/* Sign Out Button */}
+                            <button
+                                onClick={handleSignOut}
+                                className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-sm font-semibold border  hover:border-red-500/20 mt-2 mb-10"
+                            >
+                                <LogOut size={18} />
+                                <span className="font-semibold text-sm">Sign Out</span>
+                            </button>
+                        </nav>
+                    </div>
+
+                    {/* Footer Status */}
+                    <div className="p-4 border-t border-border bg-card rounded-none md:rounded-bl-lg md:rounded-br-lg">
+                        <div className="flex flex-col gap-3">
+
+                            <div className="flex items-center gap-3 px-2 ">
+                                <div className="relative">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse relative z-10" />
+                                    <div className="absolute inset-0 bg-green-500 blur-[2px] animate-pulse" />
+                                </div>
+                                <span className="text-xs text-muted-foreground font-medium tracking-wide">System Operational</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

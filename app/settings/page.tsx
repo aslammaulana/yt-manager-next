@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Settings, Key, Mail, Shield, LayoutDashboard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
+import DesktopHeader from "@/components/DesktopHeader";
 import MobileHeader from "@/components/MobileHeader";
 
 // Force dynamic rendering
@@ -91,10 +92,13 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
-            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="relative z-1 min-h-screen bg-background">
+            {/* DESKTOP HEADER - FIXED TOP */}
+            <DesktopHeader user={user} />
 
-            <main className="w-full overflow-x-hidden font-sans text-white">
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} withHeader={true} />
+
+            <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
                 {/* Mobile Header */}
                 <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
 
@@ -114,15 +118,16 @@ export default function SettingsPage() {
 
                         {loading ? (
                             <div className="flex items-center justify-center py-20">
-                                <div className="animate-spin h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full"></div>
+                                <div className="animate-spin h-8 w-8 border-2 border-[#155dfc] border-t-transparent rounded-full"></div>
                             </div>
                         ) : (
                             <>                    {/* User Info Card */}
-                                <div className="bg-[#1a2234] border border-white/30 rounded-lg mb-6">
-                                    <div className="bg-[#101828] rounded-tl-lg rounded-tr-lg px-6 py-4">
-                                        <h2 className="text-[15px]  font-semibold flex items-center gap-2"> Account Info
+                                <div className="bg-card border border-white/30 rounded-lg mb-6 shadow-[0_0px_15px_#02020210]">
+                                    <div className=" rounded-tl-lg rounded-tr-lg px-6 py-4 ">
+                                        <h2 className="text-[17px]  font-semibold flex items-center gap-2"> Account Info
                                         </h2>
                                     </div>
+                                    <div className="border border-[#f3f6f9] dark:border-[#f3f6f927]"></div>
                                     <div className="space-y-3 p-6 text-[14px]">
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-400">Email</span>
@@ -161,12 +166,13 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Set Password Card */}
-                                <div className="bg-[#1a2234] border border-white/30 rounded-lg mb-6">
-                                    <div className="bg-[#101828] rounded-tl-lg rounded-tr-lg px-6 py-4">
-                                        <h2 className="text-[15px] font-semibold flex items-center gap-2">
+                                <div className="bg-card border border-white/30 rounded-lg mb-6 shadow-[0_0px_15px_#02020210]">
+                                    <div className="bg-card rounded-tl-lg rounded-tr-lg px-6 py-4">
+                                        <h2 className="text-[17px] font-semibold flex items-center gap-2">
                                             {hasPassword ? 'Update Password' : 'Set Password'}
                                         </h2>
                                     </div>
+                                    <div className="border border-[#f3f6f9] dark:border-[#f3f6f927]"></div>
                                     <div className="space-y-4 p-6 text-[14px]">
                                         {!hasPassword && (
                                             <p className="text-gray-400">
@@ -195,7 +201,7 @@ export default function SettingsPage() {
                                                         value={password}
                                                         onChange={(e) => setPassword(e.target.value)}
                                                         placeholder="Minimal 6 karakter"
-                                                        className="w-full bg-[#101828] border border-gray-700 rounded-lg px-4 py-3 pr-12 focus:border-cyan-500 focus:outline-none transition"
+                                                        className="w-full bg-[#101116] border border-gray-700 rounded-lg px-4 py-3 pr-12 focus:border-[#155dfc] focus:outline-none transition"
                                                         required
                                                     />
                                                     <button
@@ -215,7 +221,7 @@ export default function SettingsPage() {
                                                     value={confirmPassword}
                                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                                     placeholder="Ulangi password"
-                                                    className="w-full bg-[#101828] border border-gray-700 rounded-lg px-4 py-3 focus:border-cyan-500 focus:outline-none transition"
+                                                    className="w-full bg-[#101116] border border-gray-700 rounded-lg px-4 py-3 focus:border-[#155dfc] focus:outline-none transition"
                                                     required
                                                 />
                                             </div>
@@ -244,7 +250,7 @@ export default function SettingsPage() {
                         )}
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

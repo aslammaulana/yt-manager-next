@@ -26,7 +26,10 @@ import {
     MoreVertical
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
+import DesktopHeader from "@/components/DesktopHeader";
 import MobileHeader from "@/components/MobileHeader";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LuLayoutTemplate } from "react-icons/lu";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -191,7 +194,7 @@ export default function Dashboard() {
 
     const fetchAllChannelsData = async () => {
         setLoading(true);
-        setStatus("Syncing with Cloud Database...", true);
+        setStatus("Syncing", true);
 
         try {
             const response = await fetch('/api/get-stats');
@@ -370,253 +373,280 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] relative z-1 min-h-screen bg-[#101828]">
+        <div className="relative z-1 min-h-screen bg-background">
             <Script
                 src="https://apis.google.com/js/api.js"
                 onLoad={initGapi}
             />
 
+            {/* DESKTOP HEADER - FIXED TOP */}
+            <DesktopHeader user={user} />
+
             {/* SIDEBAR */}
-            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} withHeader={true} />
 
-            {/* Mobile Header */}
-            <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+            {/* RIGHT COLUMN WRAPPER */}
+            <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
 
-            {/* MAIN */}
-            <main className="p-6 md:p-10 w-full overflow-x-hidden">
-                {/* TOPBAR */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
-                    <div>
-                        <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard</h1>
-                        <div className="mt-1 text-slate-400 text-sm">Pantau performa channel secara realtime</div>
-                        <div className={`inline-flex items-center gap-2 bg-[#1a2234] px-3 py-1 rounded-full text-xs border border-white/10 mt-2.5`}>
-                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
+                {/* MAIN */}
+                <main className="p-6 md:p-10 w-full overflow-x-hidden ">
+                    {/* TOPBAR */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
+                        <div>
+                            <h1 className="m-0 text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard</h1>
+                            <div className="mt-1 text-muted-foreground text-sm">Pantau performa channel secara realtime</div>
+                        </div>
+
+
+                    </div>
+
+
+
+
+                    {/* STATS CARDS */}
+                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5 mb-8 ">
+                        <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-[#155dfc] before:to-[rgb(61,122,255)] shadow-[0_0px_5px_#02020210]">
+                            <div className="flex justify-between items-center mb-1 md:mb-2 ">
+                                <div className="text-[10px] md:text-[13px] text-muted-foreground font-medium">SUBSCRIBERS</div>
+                                <Users size={14} className="text-[#3d7aff] md:w-[18px] md:h-[18px]" />
+                            </div>
+                            <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 ">{formatNumber(totalSubs)}</div>
+                            <div className="text-[10px] md:text-xs text-gray-400">Semua Channel</div>
+                        </div>
+                        <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10 shadow-[0_0px_5px_#02020210]">
+                            <div className="flex justify-between items-center mb-1 md:mb-2">
+                                <div className="text-[10px] md:text-[13px] text-muted-foreground font-medium">TOTAL VIEWS</div>
+                                <Eye size={14} className="text-blue-400 md:w-[18px] md:h-[18px]" />
+                            </div>
+                            <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{formatNumber(totalViews)}</div>
+                        </div>
+                        <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10 shadow-[0_0px_5px_#02020210]">
+                            <div className="flex justify-between items-center mb-1 md:mb-2">
+                                <div className="text-[10px] md:text-[13px] text-muted-foreground font-medium">3D VIEWS</div>
+                                <Activity size={14} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
+                            </div>
+                            <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
+                        </div>
+                        <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10 shadow-[0_0px_5px_#02020210]">
+                            <div className="flex justify-between items-center mb-1 md:mb-2">
+                                <div className="text-[10px] md:text-[13px] text-muted-foreground font-medium">CHANNELS</div>
+                                <Zap size={14} className="text-green-400 md:w-[18px] md:h-[18px]" />
+                            </div>
+                            <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{totalChannel}</div>
+                            <div className="text-[10px] md:text-xs text-gray-400 truncate">Last: {lastUpdate}</div>
+                        </div>
+                    </div>
+
+
+
+                    {/* Status */}
+                    <div className="flex items-center justify-between mb-5">
+                        <div className={`inline-flex items-center gap-2 bg-card px-3 py-1 rounded-full text-xs border border-border`}>
+                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${statusMsg.toLowerCase().includes('syncing') ? 'bg-yellow-500 shadow-yellow-500' : isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
                             <span id="statusText">{statusMsg}</span>
                         </div>
-                    </div>
-
-                    <div className="flex gap-4 items-center">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2234] border border-white/10 w-full md:w-auto transition-colors focus-within:border-cyan-500/50">
-                            <Search size={16} className="text-gray-400" />
-                            <input
-                                type="text"
-                                className="bg-transparent border-none outline-none text-white w-full md:w-[250px] text-sm placeholder:text-gray-600"
-                                placeholder="Cari Channel..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </div>
-                        <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#1a2234] text-white border border-white/10 hover:bg-white/10" title="Refresh Data">
-                            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-                        </button>
-                        <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-[14px] " title="Add another YouTube Account">
-                            <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
-                        </button>
-                    </div>
-                </div>
-
-
-                {/* STATS CARDS */}
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5 mb-8">
-                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-linear-to-r before:from-[#155dfc] before:to-[#3d7aff]">
-                        <div className="flex justify-between items-center mb-1 md:mb-2">
-                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">SUBSCRIBERS</div>
-                            <Users size={14} className="text-[#3d7aff] md:w-[18px] md:h-[18px]" />
-                        </div>
-                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-[#548aff]">{formatNumber(totalSubs)}</div>
-                        <div className="text-[10px] md:text-xs text-gray-400">Semua Channel</div>
-                    </div>
-                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-1 md:mb-2">
-                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">TOTAL VIEWS</div>
-                            <Eye size={14} className="text-blue-400 md:w-[18px] md:h-[18px]" />
-                        </div>
-                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{formatNumber(totalViews)}</div>
-                    </div>
-                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-1 md:mb-2">
-                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">Penayangan 3D</div>
-                            <Activity size={14} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
-                        </div>
-                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2 text-yellow-400">{formatNumber(totalRealtime)}</div>
-                    </div>
-                    <div className="bg-[#1a2234] border border-white/10 rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-white/10">
-                        <div className="flex justify-between items-center mb-1 md:mb-2">
-                            <div className="text-[10px] md:text-[13px] text-slate-400 font-medium">CHANNELS</div>
-                            <Zap size={14} className="text-green-400 md:w-[18px] md:h-[18px]" />
-                        </div>
-                        <div className="text-lg md:text-3xl font-extrabold tracking-tight my-1 md:my-2">{totalChannel}</div>
-                        <div className="text-[10px] md:text-xs text-gray-400 truncate">Last: {lastUpdate}</div>
-                    </div>
-                </div>
-
-                {/* TABLE */}
-                <div className="bg-[#1a2234] border border-white/10 rounded-lg backdrop-blur-md mt-5">
-                    <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center">
-                        <div className="text-lg font-bold">Channel List</div>
-                        <div className="hidden md:flex gap-2">
-                            <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[#1a2234] hover:bg-white/10 border border-white/10 transition-colors" title="Salin JSON Channel">
-                                <Copy size={16} /> Salin Data
-                            </button>
-                            <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[#1a2234] hover:bg-white/10 border border-white/10 transition-colors" title="Tempel JSON Channel">
-                                <ClipboardPaste size={16} /> Tempel Data
+                        <div className="flex gap-4 items-center">
+                            <button className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-white hover:bg-[#155dfc]/90 text-[14px]" >
+                                <LuLayoutTemplate size={16} /> <span className="">Layout</span>
                             </button>
                         </div>
                     </div>
-                    <div className="w-full overflow-x-auto">
-                        {/* MOBILE CARD VIEW */}
-                        <div className="md:hidden grid gap-4 p-2">
-                            {channels.map((ch, idx) => {
-                                if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
-                                return (
-                                    <div key={idx} className="bg-[#101828] border border-gray-800 rounded-lg p-4 flex flex-col gap-3 relative">
-                                        <div className="flex items-center gap-3">
-                                            <img src={ch.thumbnail} alt="" className="w-10 h-10 rounded-full border border-gray-700" />
-                                            <div>
-                                                <div className="font-bold text-white text-base">{ch.name}</div>
-                                                <div className="text-xs text-gray-400 flex gap-2">
-                                                    <span>{ch.isExpired ? '---' : formatNumber(ch.subs)} Subs</span>
-                                                    <span>•</span>
-                                                    <span>{ch.isExpired ? '---' : formatNumber(ch.views)} Views</span>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => handleDelete(ch.emailSource)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500">
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
 
-                                        <div className="mt-2 bg-black/20 p-3 rounded-lg">
-                                            <div className="text-center">
-                                                <div className="text-xs text-gray-500 uppercase">3D Views</div>
-                                                <div className="text-yellow-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h48)}</div>
-                                            </div>
-                                        </div>
+                    {/* Search CARDS */}
+                    <div className=" md:gap-5 mb-8 ">
+                        <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden  shadow-[0_0px_5px_#02020210] flex gap-4 items-center justify-between">
 
-                                        <div className="flex gap-2 mt-2">
-                                            {ch.isExpired ? (
-                                                <div className="w-full text-center p-2 bg-red-500/10 text-red-500 rounded-lg text-sm font-bold border border-red-500/20">
-                                                    EXPIRED
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-[#155dfc] hover:bg-[#407bfa] text-white p-2 rounded-lg font-bold text-sm transition text-center">
-                                                        UPLOAD
-                                                    </button>
-                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center border border-gray-700">
-                                                        <Video size={18} />
-                                                    </Link>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* DESKTOP TABLE VIEW */}
-                        <table className=" w-full border-collapse hidden md:table">
-                            <thead>
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Channel Name</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Subs</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Total Views</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Penayangan 3D</th>
-
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Upload</th>
-                                    <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Videos</th>
-                                    <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-slate-400 bg-[#101828] font-semibold">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/10">
-                                {loading && (
-                                    <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading data...</td></tr>
-                                )}
-                                {!loading && channels.map((ch, idx) => {
-                                    if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
-                                    return (
-                                        <tr key={idx} className="hover:bg-[#1a2234] transition-colors">
-                                            <td className="px-6 py-4.5 text-sm">
-                                                <div className="flex items-center gap-3">
-                                                    <img src={ch.thumbnail} alt="" className="w-8 h-8 rounded-full border border-gray-700" />
-                                                    <div className="font-semibold">{ch.name}</div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
-                                            <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
-                                            <td className="px-6 py-4.5 text-sm text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
-                                                {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
-                                            </td>
-
-                                            <td className="px-6 py-4.5 text-sm">
-                                                {ch.isExpired ? (
-                                                    <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
-                                                        EXPIRED
-                                                    </span>
-                                                ) : (
-                                                    <button onClick={() => handleManagerOpen(ch)} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors">
-                                                        UPLOAD
-                                                    </button>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4.5 text-sm">
-                                                {ch.isExpired ? (
-                                                    <span className="text-gray-600 cursor-not-allowed flex items-center gap-2">
-                                                        <Video size={16} /> <span className="text-xs">Lihat</span>
-                                                    </span>
-                                                ) : (
-                                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors" title="View Videos"
-                                                    > <span className="text-xs">LIHAT</span>
-                                                    </Link>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4.5 text-sm text-center">
-                                                <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div className="mt-10 pt-5 border-t border-white/10 text-slate-500 text-center text-sm">
-                    &copy; {new Date().getFullYear()} Bang Memed Project. All rights reserved.
-                </div>
-
-                {/* PASTE MODAL */}
-                {
-                    showPasteModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                            <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-6 w-full max-w-lg shadow-2xl">
-                                <h3 className="text-xl font-bold mb-4 text-white">Tempel Data Channel</h3>
-                                <textarea
-                                    className="w-full h-40 bg-[#0f0f0f] border border-gray-700 rounded-lg p-3 text-sm text-gray-300 focus:outline-none focus:border-cyan-500 transition mb-4"
-                                    placeholder='Paste JSON array here... e.g. [{"email": ...}]'
-                                    value={pasteContent}
-                                    onChange={(e) => setPasteContent(e.target.value)}
+                            {/* Search Kanan */}
+                            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-background border border-border w-full md:w-auto transition-colors focus-within:border-primary/50">
+                                <Search size={16} className="text-muted-foreground" />
+                                <input
+                                    type="text"
+                                    className="bg-transparent border-none outline-none text-foreground w-full md:w-[250px] text-sm placeholder:text-muted-foreground"
+                                    placeholder="Cari Channel..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
                                 />
-                                <div className="flex justify-end gap-3">
-                                    <button
-                                        onClick={() => { setShowPasteModal(false); setPasteContent(""); }}
-                                        className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-800 transition"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        onClick={() => { handlePasteSubmit(); setShowPasteModal(false); }}
-                                        className="px-4 py-2 rounded-lg bg-[#155dfc] hover:bg-[#407bfa] text-white font-medium transition"
-                                    >
-                                        Simpan Data
-                                    </button>
-                                </div>
+                            </div>
+                            <div className="flex gap-4 items-center">
+                                <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-background text-foreground border border-border hover:bg-muted" title="Refresh Data">
+                                    <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                                </button>
+                                <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-white text-[14px] hover:bg-[#155dfc]/90" title="Add another YouTube Account">
+                                    <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
+                                </button>
                             </div>
                         </div>
-                    )
-                }
-            </main >
+                    </div>
+
+                    {/* TABLE */}
+                    <div className="bg-card border border-border rounded-lg backdrop-blur-md mt-5 shadow-[0_0px_5px_#02020210]">
+                        <div className="px-6 py-5 border-b border-border flex justify-between items-center">
+                            <div className="text-lg font-bold">Channel List</div>
+                            <div className="hidden md:flex gap-2">
+                                <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors" title="Salin JSON Channel">
+                                    <Copy size={16} /> Salin Data
+                                </button>
+                                <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors" title="Tempel JSON Channel">
+                                    <ClipboardPaste size={16} /> Tempel Data
+                                </button>
+                            </div>
+                        </div>
+                        <div className="w-full overflow-x-auto">
+                            {/* MOBILE CARD VIEW */}
+                            <div className="md:hidden grid gap-4 p-2">
+                                {channels.map((ch, idx) => {
+                                    if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
+                                    return (
+                                        <div key={idx} className="bg-background border border-gray-800 rounded-lg p-4 flex flex-col gap-3 relative">
+                                            <div className="flex items-center gap-3">
+                                                <img src={ch.thumbnail} alt="" className="w-10 h-10 rounded-full border border-border" />
+                                                <div>
+                                                    <div className="font-bold text-foreground text-base">{ch.name}</div>
+                                                    <div className="text-xs text-gray-400 flex gap-2">
+                                                        <span>{ch.isExpired ? '---' : formatNumber(ch.subs)} Subs</span>
+                                                        <span>•</span>
+                                                        <span>{ch.isExpired ? '---' : formatNumber(ch.views)} Views</span>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => handleDelete(ch.emailSource)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500">
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+
+                                            <div className="mt-2 bg-black/20 p-3 rounded-lg">
+                                                <div className="text-center">
+                                                    <div className="text-xs text-gray-500 uppercase">3D Views</div>
+                                                    <div className="text-yellow-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h48)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 mt-2">
+                                                {ch.isExpired ? (
+                                                    <div className="w-full text-center p-2 bg-red-500/10 text-red-500 rounded-lg text-sm font-bold border border-red-500/20">
+                                                        EXPIRED
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-[#155dfc] hover:bg-[#407bfa] text-white p-2 rounded-lg font-bold text-sm transition text-center">
+                                                            UPLOAD
+                                                        </button>
+                                                        <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center border border-gray-700">
+                                                            <Video size={18} />
+                                                        </Link>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* DESKTOP TABLE VIEW */}
+                            <table className=" w-full border-collapse hidden md:table">
+                                <thead>
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Channel Name</th>
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Subs</th>
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Total Views</th>
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">3D VIEWS</th>
+
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Upload</th>
+                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Videos</th>
+                                        <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/10">
+                                    {loading && (
+                                        <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading data...</td></tr>
+                                    )}
+                                    {!loading && channels.map((ch, idx) => {
+                                        if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
+                                        return (
+                                            <tr key={idx} className="hover:bg-card transition-colors">
+                                                <td className="px-6 py-4.5 text-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <img src={ch.thumbnail} alt="" className="w-8 h-8 rounded-full border border-border" />
+                                                        <div className="font-semibold">{ch.name}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
+                                                <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
+                                                <td className="px-6 py-4.5 text-sm text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
+                                                    {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
+                                                </td>
+
+                                                <td className="px-6 py-4.5 text-sm">
+                                                    {ch.isExpired ? (
+                                                        <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
+                                                            EXPIRED
+                                                        </span>
+                                                    ) : (
+                                                        <button onClick={() => handleManagerOpen(ch)} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors">
+                                                            UPLOAD
+                                                        </button>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4.5 text-sm">
+                                                    {ch.isExpired ? (
+                                                        <span className="text-gray-600 cursor-not-allowed flex items-center gap-2">
+                                                            <Video size={16} /> <span className="text-xs">Lihat</span>
+                                                        </span>
+                                                    ) : (
+                                                        <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors" title="View Videos"
+                                                        > <span className="text-xs">LIHAT</span>
+                                                        </Link>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4.5 text-sm text-center">
+                                                    <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="mt-10 pt-5 border-t border-border text-slate-500 text-center text-sm">
+                        &copy; {new Date().getFullYear()} Bang Memed Project. All rights reserved.
+                    </div>
+
+                    {/* PASTE MODAL */}
+                    {
+                        showPasteModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                                <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-6 w-full max-w-lg shadow-2xl">
+                                    <h3 className="text-xl font-bold mb-4 text-white">Tempel Data Channel</h3>
+                                    <textarea
+                                        className="w-full h-40 bg-[#0f0f0f] border border-gray-700 rounded-lg p-3 text-sm text-gray-300 focus:outline-none focus:border-cyan-500 transition mb-4"
+                                        placeholder='Paste JSON array here... e.g. [{"email": ...}]'
+                                        value={pasteContent}
+                                        onChange={(e) => setPasteContent(e.target.value)}
+                                    />
+                                    <div className="flex justify-end gap-3">
+                                        <button
+                                            onClick={() => { setShowPasteModal(false); setPasteContent(""); }}
+                                            className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-800 transition"
+                                        >
+                                            Batal
+                                        </button>
+                                        <button
+                                            onClick={() => { handlePasteSubmit(); setShowPasteModal(false); }}
+                                            className="px-4 py-2 rounded-lg bg-[#155dfc] hover:bg-[#407bfa] text-white font-medium transition"
+                                        >
+                                            Simpan Data
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+                </main >
+            </div >
         </div >
     );
 }
