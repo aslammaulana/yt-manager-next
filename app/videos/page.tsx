@@ -204,7 +204,7 @@ function VideosContent() {
 
             {/* RIGHT COLUMN WRAPPER */}
             <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
-                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
 
                 <main className="p-6 md:p-10 w-full overflow-x-hidden text-foreground font-sans">
                     {/* Header */}

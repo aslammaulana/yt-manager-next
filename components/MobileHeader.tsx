@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { IoMdMoon, IoMdSunny } from "react-icons/io";
 import { ThemeToggle } from "./ThemeToggle";
+import ProfileDropdown from "./ProfileDropdown";
 
 interface MobileHeaderProps {
     onMenuClick: () => void;
+    user?: any;
 }
 
-export default function MobileHeader({ onMenuClick }: MobileHeaderProps) {
+export default function MobileHeader({ onMenuClick, user }: MobileHeaderProps) {
     return (
         <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-[#101828] sticky top-0 z-30">
             {/* Bagian Kiri: Menu & Logo */}
@@ -30,11 +32,16 @@ export default function MobileHeader({ onMenuClick }: MobileHeaderProps) {
 
             {/* Bagian Kanan: Mode Toggle & User Profile */}
             <div className="flex items-center gap-3">
-                <ThemeToggle />                
-                <img 
-                    src="/user.svg" 
-                    alt="User profile" 
-                    className="h-9 w-9 rounded-md object-cover "
+                <ThemeToggle />
+                <ProfileDropdown
+                    user={user}
+                    trigger={
+                        <img
+                            src="/user.svg"
+                            alt="User profile"
+                            className="h-9 w-9 rounded-md object-cover cursor-pointer hover:opacity-80 transition"
+                        />
+                    }
                 />
             </div>
         </header>

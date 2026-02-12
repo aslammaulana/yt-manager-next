@@ -2,6 +2,7 @@
 
 import { Database } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import ProfileDropdown from "./ProfileDropdown";
 
 interface DesktopHeaderProps {
     user?: {
@@ -33,19 +34,24 @@ export default function DesktopHeader({ user }: DesktopHeaderProps) {
                 <ThemeToggle />
 
                 {/* User Info */}
-                <div className="flex items-center gap-3 px-3 py-1.5 hover:bg-[#ffffff18] rounded-md ">
-                    <div className="flex flex-col items-end ">
-                        <span className="text-[11px] text-white dark:text-white font-semibold">{displayName}</span>
-                        <span className="text-[11px] text-white/40 dark:text-white/40">{email}</span>
-                    </div>
-                    <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden ">
-                        <img
-                            src="/user.svg"
-                            alt="User"
-                            className="h-full w-full object-cover"
-                        />
-                    </div>
-                </div>
+                <ProfileDropdown
+                    user={user}
+                    trigger={
+                        <div className="flex items-center gap-3 px-3 py-1.5 hover:bg-[#ffffff18] rounded-md transition-colors select-none">
+                            <div className="flex flex-col items-end ">
+                                <span className="text-[11px] text-white dark:text-white font-semibold">{displayName}</span>
+                                <span className="text-[11px] text-white/40 dark:text-white/40">{email}</span>
+                            </div>
+                            <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden ">
+                                <img
+                                    src="/user.svg"
+                                    alt="User"
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
+                        </div>
+                    }
+                />
             </div>
         </header>
     );

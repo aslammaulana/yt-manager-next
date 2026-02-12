@@ -29,7 +29,10 @@ import AppSidebar from "@/components/AppSidebar";
 import DesktopHeader from "@/components/DesktopHeader";
 import MobileHeader from "@/components/MobileHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LuLayoutTemplate } from "react-icons/lu";
+
+import LayoutPopover from "@/components/dashboard/LayoutPopover";
+import ChannelGrid from "@/components/dashboard/ChannelGrid";
+import ChannelTable from "@/components/dashboard/ChannelTable";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -67,11 +70,12 @@ export default function Dashboard() {
     const [isOnline, setIsOnline] = useState(false);
     const [search, setSearch] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [layout, setLayout] = useState<'table' | 'grid'>('table');
 
     // Auth State
     const supabase = createClient();
     const [user, setUser] = useState<any>(null);
-    const [role, setRole] = useState<string>("no_access");
+    const [role, setRole] = useState<string>("inactive");
 
     const fetchSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -387,7 +391,7 @@ export default function Dashboard() {
 
             {/* RIGHT COLUMN WRAPPER */}
             <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
-                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
 
                 {/* MAIN */}
                 <main className="p-6 md:p-10 w-full overflow-x-hidden ">
@@ -440,21 +444,10 @@ export default function Dashboard() {
 
 
 
-                    {/* Status */}
-                    <div className="flex items-center justify-between mb-5">
-                        <div className={`inline-flex items-center gap-2 bg-card px-3 py-1 rounded-full text-xs border border-border`}>
-                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${statusMsg.toLowerCase().includes('syncing') ? 'bg-yellow-500 shadow-yellow-500' : isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
-                            <span id="statusText">{statusMsg}</span>
-                        </div>
-                        <div className="flex gap-4 items-center">
-                            <button className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-white hover:bg-[#155dfc]/90 text-[14px]" >
-                                <LuLayoutTemplate size={16} /> <span className="">Layout</span>
-                            </button>
-                        </div>
-                    </div>
+                    
 
                     {/* Search CARDS */}
-                    <div className=" md:gap-5 mb-8 ">
+                    <div className=" md:gap-5 mb-5 ">
                         <div className="bg-card border border-border rounded-lg md:rounded-lg p-3 md:p-5 relative overflow-hidden  shadow-[0_0px_5px_#02020210] flex gap-4 items-center justify-between">
 
                             {/* Search Kanan */}
@@ -469,145 +462,84 @@ export default function Dashboard() {
                                 />
                             </div>
                             <div className="flex gap-4 items-center">
-                                <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-background text-foreground border border-border hover:bg-muted" title="Refresh Data">
+                                <button onClick={fetchAllChannelsData} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-background text-foreground border border-border hover:bg-muted cursor-pointer" title="Refresh Data">
                                     <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                                 </button>
-                                <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-white text-[14px] hover:bg-[#155dfc]/90" title="Add another YouTube Account">
+                                <button onClick={googleSignIn} className="px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all bg-[#155dfc] text-white text-[14px] hover:bg-[#155dfc]/90 cursor-pointer" title="Add another YouTube Account">
                                     <Upload size={16} /> <span className="hidden md:inline">Tambah Channel</span>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* TABLE */}
+                    {/* Status */}
+                    <div className="flex items-center justify-between mb-5">
+                        <div className={`inline-flex items-center gap-2 bg-card px-3 py-1 rounded-full text-xs border border-border`}>
+                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px] ${statusMsg.toLowerCase().includes('syncing') ? 'bg-yellow-500 shadow-yellow-500' : isOnline ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`}></div>
+                            <span id="statusText">{statusMsg}</span>
+                        </div>
+                        <div className="flex gap-4 items-center">
+                            <LayoutPopover currentLayout={layout} onApply={setLayout} />
+                        </div>
+                    </div>
+
+                    {/* CHANNEL LIST */}
                     <div className="bg-card border border-border rounded-lg backdrop-blur-md mt-5 shadow-[0_0px_5px_#02020210]">
                         <div className="px-6 py-5 border-b border-border flex justify-between items-center">
                             <div className="text-lg font-bold">Channel List</div>
                             <div className="hidden md:flex gap-2">
-                                <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors" title="Salin JSON Channel">
+                                <button onClick={handleCopyData} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors cursor-pointer" title="Salin JSON Channel">
                                     <Copy size={16} /> Salin Data
                                 </button>
-                                <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors" title="Tempel JSON Channel">
+                                <button onClick={() => setShowPasteModal(true)} className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-card hover:bg-white/10 border border-border transition-colors cursor-pointer" title="Tempel JSON Channel">
                                     <ClipboardPaste size={16} /> Tempel Data
                                 </button>
                             </div>
                         </div>
-                        <div className="w-full overflow-x-auto">
-                            {/* MOBILE CARD VIEW */}
-                            <div className="md:hidden grid gap-4 p-2">
-                                {channels.map((ch, idx) => {
-                                    if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
-                                    return (
-                                        <div key={idx} className="bg-background border border-gray-800 rounded-lg p-4 flex flex-col gap-3 relative">
-                                            <div className="flex items-center gap-3">
-                                                <img src={ch.thumbnail} alt="" className="w-10 h-10 rounded-full border border-border" />
-                                                <div>
-                                                    <div className="font-bold text-foreground text-base">{ch.name}</div>
-                                                    <div className="text-xs text-gray-400 flex gap-2">
-                                                        <span>{ch.isExpired ? '---' : formatNumber(ch.subs)} Subs</span>
-                                                        <span>•</span>
-                                                        <span>{ch.isExpired ? '---' : formatNumber(ch.views)} Views</span>
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => handleDelete(ch.emailSource)} className="absolute top-4 right-4 text-gray-500 hover:text-red-500">
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
+                        <div className="p-4">
+                            {/* Logic: 
+                                - Mobile always defaults to Grid/Card view because table is hard to read, UNLESS we want to force horizontal scroll. 
+                                  User request: "ketika memilih grid, maka akan table channel list akan berubah menjadi grid 2".
+                                  Let's respect the switch for Desktop. For mobile, it's already kind of a "grid" (col-1).
+                                  If layout is grid: show ChannelGrid.
+                                  If layout is table: show ChannelTable (hidden on mobile) AND ChannelGrid (visible on mobile only).
+                             */}
 
-                                            <div className="mt-2 bg-black/20 p-3 rounded-lg">
-                                                <div className="text-center">
-                                                    <div className="text-xs text-gray-500 uppercase">3D Views</div>
-                                                    <div className="text-yellow-400 font-bold text-lg">{ch.isExpired ? '-' : formatNumber(ch.realtime.h48)}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 mt-2">
-                                                {ch.isExpired ? (
-                                                    <div className="w-full text-center p-2 bg-red-500/10 text-red-500 rounded-lg text-sm font-bold border border-red-500/20">
-                                                        EXPIRED
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-[#155dfc] hover:bg-[#407bfa] text-white p-2 rounded-lg font-bold text-sm transition text-center">
-                                                            UPLOAD
-                                                        </button>
-                                                        <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center border border-gray-700">
-                                                            <Video size={18} />
-                                                        </Link>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-
-                            {/* DESKTOP TABLE VIEW */}
-                            <table className=" w-full border-collapse hidden md:table">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Channel Name</th>
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Subs</th>
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Total Views</th>
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">3D VIEWS</th>
-
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Upload</th>
-                                        <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Videos</th>
-                                        <th className="px-6 py-4 text-center text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/10">
-                                    {loading && (
-                                        <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading data...</td></tr>
-                                    )}
-                                    {!loading && channels.map((ch, idx) => {
-                                        if (!ch.name.toLowerCase().includes(search.toLowerCase())) return null;
-                                        return (
-                                            <tr key={idx} className="hover:bg-card transition-colors">
-                                                <td className="px-6 py-4.5 text-sm">
-                                                    <div className="flex items-center gap-3">
-                                                        <img src={ch.thumbnail} alt="" className="w-8 h-8 rounded-full border border-border" />
-                                                        <div className="font-semibold">{ch.name}</div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.subs)}</td>
-                                                <td className="px-6 py-4.5 text-sm">{ch.isExpired ? '---' : formatNumber(ch.views)}</td>
-                                                <td className="px-6 py-4.5 text-sm text-yellow-400 font-bold" title={ch.realtime.error || "Realtime 48h"}>
-                                                    {ch.isExpired ? '---' : formatNumber(ch.realtime.h48)}
-                                                </td>
-
-                                                <td className="px-6 py-4.5 text-sm">
-                                                    {ch.isExpired ? (
-                                                        <span className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-xs font-bold">
-                                                            EXPIRED
-                                                        </span>
-                                                    ) : (
-                                                        <button onClick={() => handleManagerOpen(ch)} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors">
-                                                            UPLOAD
-                                                        </button>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4.5 text-sm">
-                                                    {ch.isExpired ? (
-                                                        <span className="text-gray-600 cursor-not-allowed flex items-center gap-2">
-                                                            <Video size={16} /> <span className="text-xs">Lihat</span>
-                                                        </span>
-                                                    ) : (
-                                                        <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#5b9aff] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors" title="View Videos"
-                                                        > <span className="text-xs">LIHAT</span>
-                                                        </Link>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4.5 text-sm text-center">
-                                                    <button onClick={() => handleDelete(ch.emailSource)} className="text-red-500 hover:text-red-400 transition-colors" title="Delete Channel">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
+                            {layout === 'grid' ? (
+                                <ChannelGrid
+                                    channels={channels}
+                                    loading={loading}
+                                    search={search}
+                                    formatNumber={formatNumber}
+                                    handleDelete={handleDelete}
+                                    handleManagerOpen={handleManagerOpen}
+                                />
+                            ) : (
+                                <>
+                                    {/* Mobile View (Always Card/Grid-1) when in Table mode */}
+                                    <div className="md:hidden">
+                                        <ChannelGrid
+                                            channels={channels}
+                                            loading={loading}
+                                            search={search}
+                                            formatNumber={formatNumber}
+                                            handleDelete={handleDelete}
+                                            handleManagerOpen={handleManagerOpen}
+                                        />
+                                    </div>
+                                    {/* Desktop View (Table) */}
+                                    <div className="hidden md:block">
+                                        <ChannelTable
+                                            channels={channels}
+                                            loading={loading}
+                                            search={search}
+                                            formatNumber={formatNumber}
+                                            handleDelete={handleDelete}
+                                            handleManagerOpen={handleManagerOpen}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -630,13 +562,13 @@ export default function Dashboard() {
                                     <div className="flex justify-end gap-3">
                                         <button
                                             onClick={() => { setShowPasteModal(false); setPasteContent(""); }}
-                                            className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-800 transition"
+                                            className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-800 transition cursor-pointer"
                                         >
                                             Batal
                                         </button>
                                         <button
                                             onClick={() => { handlePasteSubmit(); setShowPasteModal(false); }}
-                                            className="px-4 py-2 rounded-lg bg-[#155dfc] hover:bg-[#407bfa] text-white font-medium transition"
+                                            className="px-4 py-2 rounded-lg bg-[#155dfc] hover:bg-[#407bfa] text-white font-medium transition cursor-pointer"
                                         >
                                             Simpan Data
                                         </button>

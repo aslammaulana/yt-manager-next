@@ -10,10 +10,12 @@ import {
     Settings,
     LogOut,
     MessageSquare,
-    FileText
+    FileText,
+    User
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import MembershipCountdown from './MembershipCountdown';
 
 interface SidebarProps {
     role: string;
@@ -22,6 +24,7 @@ interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
     withHeader?: boolean;
+    expiryDate?: string;
 }
 
 export default function Sidebar({
@@ -30,7 +33,8 @@ export default function Sidebar({
     handleSignOut,
     isOpen,
     onClose,
-    withHeader = false
+    withHeader = false,
+    expiryDate
 }: SidebarProps) {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
@@ -77,8 +81,8 @@ export default function Sidebar({
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-card rounded-none md:rounded-tl-lg md:rounded-tr-lg">
                         {/* 1. Navigation Menu */}
-                        <nav className="space-y-1.5">
-                            <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Main Menu</h3>
+                        <nav className="space-y-1.5 ">
+                            <h3 className="text-[12px] font-bold text-gray-500 uppercase  tracking-widest px-2 mb-2">Main Menu</h3>
 
                             <Link
                                 href="/dashboard"
@@ -90,6 +94,18 @@ export default function Sidebar({
                             >
                                 <LayoutDashboard size={18} />
                                 <span className="font-semibold text-sm">Dashboard</span>
+                            </Link>
+
+                            <Link
+                                href="/account/overview"
+                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/account/overview"
+                                    ? "bg-blue-600/10   text-[#1e1e2d] dark:text-blue-400"
+                                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                                    }`}
+                                onClick={onClose}
+                            >
+                                <User size={18} />
+                                <span className="font-semibold text-sm">Overview</span>
                             </Link>
 
                             <div
@@ -115,9 +131,9 @@ export default function Sidebar({
                             {role === 'admin' && (
                                 <Link
                                     href="/admin"
-                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${pathname === "/admin"
+                                    className={`flex mb-10 items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200   ${pathname === "/admin"
                                         ? "bg-blue-600/10   text-[#1e1e2d] dark:text-blue-400"
-                                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent "
                                         }`}
                                     onClick={onClose}
                                 >
@@ -125,21 +141,18 @@ export default function Sidebar({
                                     <span className="font-semibold text-sm">Kelola User</span>
                                 </Link>
                             )}
-
-                            {/* Sign Out Button */}
-                            <button
-                                onClick={handleSignOut}
-                                className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-sm font-semibold border  hover:border-red-500/20 mt-2 mb-10"
-                            >
-                                <LogOut size={18} />
-                                <span className="font-semibold text-sm">Sign Out</span>
-                            </button>
+                             {expiryDate && role !== 'admin' && role !== 'inactive' && (
+                                <div className="-mx-4 -mb-3 mt-20">
+                                    <MembershipCountdown expiryDate={expiryDate} />
+                                </div>
+                            )}
                         </nav>
                     </div>
 
                     {/* Footer Status */}
-                    <div className="p-4 border-t border-border bg-card rounded-none md:rounded-bl-lg md:rounded-br-lg">
+                    <div className=" p-4 border-t border-border bg-card rounded-none md:rounded-bl-lg md:rounded-br-lg">
                         <div className="flex flex-col gap-3">
+                           
 
                             <div className="flex items-center gap-3 px-2 ">
                                 <div className="relative">

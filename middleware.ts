@@ -50,10 +50,10 @@ export async function middleware(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        const role = profile?.role || 'no_access';
+        const role = profile?.role || 'inactive';
 
-        // Check Expiration for Editors
-        if (role === 'editor' && profile?.access_expires_at) {
+        // Check Expiration for Members (time-based access)
+        if (role === 'member' && profile?.access_expires_at) {
             const expiresAt = new Date(profile.access_expires_at).getTime();
             const now = new Date().getTime();
 
@@ -63,8 +63,18 @@ export async function middleware(request: NextRequest) {
             }
         }
 
-        // Redirect 'no_access' to Pricing (except settings - they can set password)
-        if (role === 'no_access' && !path.startsWith('/pricing') && !path.startsWith('/settings')) {
+        // Check Expiration for Trial users
+        if (role === 'trial' && profile?.access_expires_at) {
+            const expiresAt = new Date(profile.access_expires_at).getTime();
+            const now = new Date().getTime();
+
+            if (now > expiresAt) {
+                return NextResponse.redirect(new URL('/pricing?expired=true', request.url));
+            }
+        }
+
+        // Redirect 'inactive' to Pricing (except settings - they can set password)
+        if (role === 'inactive' && !path.startsWith('/pricing') && !path.startsWith('/settings')) {
             return NextResponse.redirect(new URL('/pricing', request.url));
         }
 
@@ -74,8 +84,8 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Redirect Authenticated Users away from Login
-    if (path === '/login' && user) {
+    // 2. Redirect Authenticated Users away from Login/Signup/Checkout
+    if ((path === '/login' || path === '/signup' || path.startsWith('/checkout')) && user) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 

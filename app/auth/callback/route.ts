@@ -28,7 +28,7 @@ export async function GET(request: Request) {
                     .insert({
                         id: userId,
                         email: userEmail,
-                        role: 'no_access'
+                        role: 'inactive'
                     });
             }
         }

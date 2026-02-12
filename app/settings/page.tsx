@@ -3,11 +3,11 @@
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Settings, Key, Mail, Shield, LayoutDashboard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Settings, User, Mail, Shield, CheckCircle, AlertCircle, Eye, EyeOff, LayoutDashboard } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import DesktopHeader from "@/components/DesktopHeader";
 import MobileHeader from "@/components/MobileHeader";
+import Link from 'next/link';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -19,16 +19,28 @@ export default function SettingsPage() {
 
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [savingAuth, setSavingAuth] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    // Password form
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    // Profile Form
+    const [fullName, setFullName] = useState('');
+    const [whatsapp, setWhatsapp] = useState('');
+    const [email, setEmail] = useState('');
 
-    // Check if user has password set
-    const [hasPassword, setHasPassword] = useState(false);
+    // Login Method State
+    const [loginMode, setLoginMode] = useState<'default' | 'email' | 'password'>('default');
+
+    // Change Email Form
+    const [newEmail, setNewEmail] = useState('');
+    const [confirmPasswordEmail, setConfirmPasswordEmail] = useState('');
+
+    // Change Password Form
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+    const [showPassword, setShowPassword] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
@@ -42,213 +54,391 @@ export default function SettingsPage() {
             // Get detailed profile
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('role, access_expires_at')
+                .select('*')
                 .eq('id', user.id)
                 .single();
 
             setUser({ ...user, profile });
-
-            // Check if user has password identity
-            const identities = user.identities || [];
-            const hasEmailIdentity = identities.some((id: any) => id.provider === 'email');
-            setHasPassword(hasEmailIdentity);
-
+            setEmail(user.email || '');
+            setFullName(profile?.full_name || '');
+            setWhatsapp(profile?.whatsapp || '');
             setLoading(false);
         };
         fetchUser();
     }, []);
 
-    const handleSetPassword = async (e: React.FormEvent) => {
+    const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage(null);
+        setSavingProfile(true);
 
-        if (password.length < 6) {
-            setMessage({ type: 'error', text: 'Password minimal 6 karakter' });
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            setMessage({ type: 'error', text: 'Password tidak cocok' });
-            return;
-        }
-
-        setSaving(true);
         try {
-            const { error } = await supabase.auth.updateUser({
-                password: password
-            });
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: fullName,
+                    whatsapp: whatsapp,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
 
             if (error) throw error;
-
-            setMessage({ type: 'success', text: 'Password berhasil diset! Sekarang Anda bisa login dengan Email + Password.' });
-            setPassword('');
-            setConfirmPassword('');
-            setHasPassword(true);
+            setMessage({ type: 'success', text: 'Profil berhasil diperbarui.' });
         } catch (err: any) {
             setMessage({ type: 'error', text: err.message });
         } finally {
-            setSaving(false);
+            setSavingProfile(false);
         }
     };
 
-    return (
-        <div className="relative z-1 min-h-screen bg-background">
-            {/* DESKTOP HEADER - FIXED TOP */}
-            <DesktopHeader user={user} />
+    const handleChangeEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage(null);
+        setSavingAuth(true);
 
+        try {
+            // Verify current password first
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: confirmPasswordEmail
+            });
+
+            if (signInError) throw new Error("Password konfirmasi salah.");
+
+            // Update Email
+            const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
+            if (updateError) throw updateError;
+
+            setMessage({ type: 'success', text: 'Email berhasil diperbarui! Silakan cek email baru Anda untuk konfirmasi.' });
+            setLoginMode('default');
+            setNewEmail('');
+            setConfirmPasswordEmail('');
+        } catch (err: any) {
+            setMessage({ type: 'error', text: err.message });
+        } finally {
+            setSavingAuth(false);
+        }
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage(null);
+
+        if (newPassword.length < 8) {
+            setMessage({ type: 'error', text: 'Password baru minimal 8 karakter.' });
+            return;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            setMessage({ type: 'error', text: 'Konfirmasi password baru tidak cocok.' });
+            return;
+        }
+
+        setSavingAuth(true);
+
+        try {
+            // Verify current password first
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: currentPassword
+            });
+
+            if (signInError) throw new Error("Password saat ini salah.");
+
+            // Update Password
+            const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+            if (updateError) throw updateError;
+
+            setMessage({ type: 'success', text: 'Password berhasil diperbarui!' });
+            setLoginMode('default');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmNewPassword('');
+        } catch (err: any) {
+            setMessage({ type: 'error', text: err.message });
+        } finally {
+            setSavingAuth(false);
+        }
+    };
+
+    const resetForms = () => {
+        setLoginMode('default');
+        setMessage(null);
+        setNewEmail('');
+        setConfirmPasswordEmail('');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+    };
+
+    return (
+        <div className="relative z-1 min-h-screen bg-background text-foreground">
+            <DesktopHeader user={user} />
             <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} withHeader={true} />
 
             <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
-                {/* Mobile Header */}
-                <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
 
-                <div className="p-6 md:p-10">
-                    <div className="max-w-6xl mx-auto">
-                        {/* Header */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                            <div>
-                                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3"> Account Settings
-                                </h1>
-                                <p className="text-gray-400 text-sm mt-1">Kelola akun dan keamanan Anda</p>
-                            </div>
-                            <Link href="/dashboard" className="hidden md:flex items-center gap-2 text-[14px] font-semibold bg-[#1a2234] hover:bg-[#155dfc] text-white px-4 py-2 rounded-lg border border-gray-700 transition">
-                                <LayoutDashboard size={18} /> Back to Dashboard
-                            </Link>
+                <div className="p-6 md:p-10 max-w-5xl mx-auto w-full">
+
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">Pengaturan Akun</h1>
+                            <p className="text-muted-foreground text-sm mt-1">Kelola informasi profil dan keamanan akun Anda.</p>
                         </div>
+                        <Link href="/dashboard" className="hidden md:flex items-center gap-2 text-sm font-semibold bg-card hover:bg-[#155dfc] hover:text-white text-muted-foreground px-4 py-2 rounded-lg border border-border transition-colors">
+                            <LayoutDashboard size={18} /> Dashboard
+                        </Link>
+                    </div>
 
-                        {loading ? (
-                            <div className="flex items-center justify-center py-20">
-                                <div className="animate-spin h-8 w-8 border-2 border-[#155dfc] border-t-transparent rounded-full"></div>
-                            </div>
-                        ) : (
-                            <>                    {/* User Info Card */}
-                                <div className="bg-card border border-white/30 rounded-lg mb-6 shadow-[0_0px_15px_#02020210]">
-                                    <div className=" rounded-tl-lg rounded-tr-lg px-6 py-4 ">
-                                        <h2 className="text-[17px]  font-semibold flex items-center gap-2"> Account Info
-                                        </h2>
-                                    </div>
-                                    <div className="border border-[#f3f6f9] dark:border-[#f3f6f927]"></div>
-                                    <div className="space-y-3 p-6 text-[14px]">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-400">Email</span>
-                                            <span className="font-medium">{user?.email}</span>
+                    {loading ? (
+                        <div className="flex justify-center py-20">
+                            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            {message && (
+                                <div className={`flex items-center gap-2 p-4 rounded-lg border ${message.type === 'success'
+                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    }`}>
+                                    {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                                    <span className="text-sm font-medium">{message.text}</span>
+                                </div>
+                            )}
+
+                            {/* DETAIL PROFIL CARD */}
+                            <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                                <div className="px-6 py-4 border-b border-border bg-muted/20">
+                                    <h2 className="text-lg font-semibold flex items-center gap-2">Detail Profil</h2>
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    <div className="grid gap-6 md:grid-cols-1">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-muted-foreground">Alamat Email <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="email"
+                                                value={email}
+                                                disabled
+                                                className="w-full bg-muted/40 border border-border rounded-lg px-4 py-2.5 text-sm text-muted-foreground cursor-not-allowed opacity-70"
+                                            />
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-400">Role</span>
-                                            <span className="font-medium capitalize">{user?.profile?.role || 'User'}</span>
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Nama Lengkap <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={fullName}
+                                                onChange={(e) => setFullName(e.target.value)}
+                                                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                            />
                                         </div>
 
-                                        {user?.profile?.role === 'editor' && user?.profile?.access_expires_at && (
-                                            <div className="flex items-center justify-between bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/20">
-                                                <span className="text-yellow-400">Access Expires</span>
-                                                <span className="font-bold text-yellow-400">
-                                                    {new Date(user.profile.access_expires_at).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-400">Login Methods</span>
-                                            <div className="flex gap-2">
-                                                {user?.app_metadata?.providers?.includes('google') && (
-                                                    <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs border border-blue-500/50">
-                                                        Google
-                                                    </span>
-                                                )}
-                                                {hasPassword && (
-                                                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs border border-green-500/50">
-                                                        Email + Password
-                                                    </span>
-                                                )}
-                                            </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">No WhatsApp <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={whatsapp}
+                                                onChange={(e) => setWhatsapp(e.target.value)}
+                                                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                placeholder="628..."
+                                            />
                                         </div>
                                     </div>
                                 </div>
+                                <div className="px-6 py-4 bg-muted/20 border-t border-border flex justify-end">
+                                    <button
+                                        onClick={handleSaveProfile}
+                                        disabled={savingProfile}
+                                        className="bg-[#155dfc] hover:bg-[#155dfc]/90 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                                    >
+                                        {savingProfile && <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>}
+                                        Simpan Perubahan
+                                    </button>
+                                </div>
+                            </div>
 
-                                {/* Set Password Card */}
-                                <div className="bg-card border border-white/30 rounded-lg mb-6 shadow-[0_0px_15px_#02020210]">
-                                    <div className="bg-card rounded-tl-lg rounded-tr-lg px-6 py-4">
-                                        <h2 className="text-[17px] font-semibold flex items-center gap-2">
-                                            {hasPassword ? 'Update Password' : 'Set Password'}
-                                        </h2>
-                                    </div>
-                                    <div className="border border-[#f3f6f9] dark:border-[#f3f6f927]"></div>
-                                    <div className="space-y-4 p-6 text-[14px]">
-                                        {!hasPassword && (
-                                            <p className="text-gray-400">
-                                                Anda login via Google. Set password agar bisa login dengan Email + Password juga.
-                                            </p>
-                                        )}
+                            {/* METODE LOGIN CARD */}
+                            <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                                <div className="px-6 py-4 border-b border-border bg-muted/20">
+                                    <h2 className="text-lg font-semibold flex items-center gap-2">Metode Login</h2>
+                                </div>
 
-                                        {message && (
-                                            <div className={`flex items-center gap-2 p-3 rounded-lg ${message.type === 'success'
-                                                ? 'bg-green-500/10 text-green-400 border border-green-500/30'
-                                                : 'bg-red-500/10 text-red-400 border border-red-500/30'
-                                                }`}>
-                                                {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                                                {message.text}
+                                <div className="p-6">
+                                    {/* DEFAULT VIEW */}
+                                    {loginMode === 'default' && (
+                                        <div className="space-y-8">
+                                            {/* Email Row */}
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                <div className="space-y-1">
+                                                    <div className="text-sm font-medium text-muted-foreground">Alamat Email</div>
+                                                    <div className="text-base font-semibold text-foreground break-all">{email}</div>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setLoginMode('email'); setMessage(null); }}
+                                                    className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg transition-colors border border-border cursor-pointer self-start md:self-auto shrink-0"
+                                                >
+                                                    Ganti Email
+                                                </button>
                                             </div>
-                                        )}
 
-                                        <form onSubmit={handleSetPassword} className="space-y-4">
-                                            <div>
-                                                <label className="block text-gray-400 mb-2">
-                                                    {hasPassword ? 'New Password' : 'Password'}
-                                                </label>
-                                                <div className="relative">
+                                            <div className="border-t border-dashed border-border"></div>
+
+                                            {/* Password Row */}
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                <div className="space-y-1">
+                                                    <div className="text-sm font-medium text-muted-foreground">Kata Sandi</div>
+                                                    <div className="text-base font-semibold text-foreground tracking-widest">************</div>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setLoginMode('password'); setMessage(null); }}
+                                                    className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg transition-colors border border-border cursor-pointer self-start md:self-auto shrink-0"
+                                                >
+                                                    Ganti Kata Sandi
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* CHANGE EMAIL FORM */}
+                                    {loginMode === 'email' && (
+                                        <form onSubmit={handleChangeEmail} className="space-y-6">
+                                            <div className="grid md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-foreground">Alamat Email Baru <span className="text-red-500">*</span></label>
                                                     <input
-                                                        type={showPassword ? 'text' : 'password'}
-                                                        value={password}
-                                                        onChange={(e) => setPassword(e.target.value)}
-                                                        placeholder="Minimal 6 karakter"
-                                                        className="w-full bg-[#101116] border border-gray-700 rounded-lg px-4 py-3 pr-12 focus:border-[#155dfc] focus:outline-none transition"
+                                                        type="email"
                                                         required
+                                                        value={newEmail}
+                                                        onChange={(e) => setNewEmail(e.target.value)}
+                                                        className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                                                    >
-                                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                    </button>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-foreground">Konfirmasi Kata Sandi <span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            required
+                                                            value={confirmPasswordEmail}
+                                                            onChange={(e) => setConfirmPasswordEmail(e.target.value)}
+                                                            className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                            placeholder="Masukkan kata sandi saat ini"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                                                        >
+                                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <label className="block text-gray-400 mb-2">Confirm Password</label>
-                                                <input
-                                                    type={showPassword ? 'text' : 'password'}
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    placeholder="Ulangi password"
-                                                    className="w-full bg-[#101116] border border-gray-700 rounded-lg px-4 py-3 focus:border-[#155dfc] focus:outline-none transition"
-                                                    required
-                                                />
+                                            <div className="flex items-center gap-3 pt-2">
+                                                <button
+                                                    type="submit"
+                                                    disabled={savingAuth}
+                                                    className="bg-[#155dfc] hover:bg-[#155dfc]/90 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                                                >
+                                                    {savingAuth && <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>}
+                                                    Perbarui Email
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={resetForms}
+                                                    className="text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                                                >
+                                                    Batal
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+
+                                    {/* CHANGE PASSWORD FORM */}
+                                    {loginMode === 'password' && (
+                                        <form onSubmit={handleChangePassword} className="space-y-6">
+                                            <div className="border-b border-dashed border-border/50 pb-6 mb-6">
+                                                <div className="space-y-2 max-w-md">
+                                                    <label className="text-sm font-medium text-foreground">Kata Sandi Saat Ini <span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            required
+                                                            value={currentPassword}
+                                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                                            className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                                                        >
+                                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <button
-                                                type="submit"
-                                                disabled={saving}
-                                                className="w-full bg-[#155dfc] hover:bg-[#407bfa] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
-                                            >
-                                                {saving ? (
-                                                    <>
-                                                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                                                        Saving...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Shield size={18} />
-                                                        {hasPassword ? 'Update Password' : 'Set Password'}
-                                                    </>
-                                                )}
-                                            </button>
+                                            <div className="grid md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-foreground">Kata Sandi Baru <span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            required
+                                                            minLength={8}
+                                                            value={newPassword}
+                                                            onChange={(e) => setNewPassword(e.target.value)}
+                                                            className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-foreground">Konfirmasi Kata Sandi Baru <span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            required
+                                                            minLength={8}
+                                                            value={confirmNewPassword}
+                                                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                                            className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-xs text-muted-foreground italic flex items-center gap-1.5 bg-yellow-500/10 text-yellow-500 p-2 rounded border border-yellow-500/20 w-fit">
+                                                <AlertCircle size={14} />
+                                                Kata sandi harus minimal 8 karakter dan mengandung simbol.
+                                            </div>
+
+                                            <div className="flex items-center gap-3 pt-2">
+                                                <button
+                                                    type="submit"
+                                                    disabled={savingAuth}
+                                                    className="bg-[#155dfc] hover:bg-[#155dfc]/90 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                                                >
+                                                    {savingAuth && <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>}
+                                                    Perbarui Kata Sandi
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={resetForms}
+                                                    className="text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                                                >
+                                                    Batal
+                                                </button>
+                                            </div>
                                         </form>
-                                    </div>
+                                    )}
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

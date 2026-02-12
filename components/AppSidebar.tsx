@@ -12,7 +12,8 @@ const SCOPES = "openid email profile https://www.googleapis.com/auth/youtube.rea
 export default function AppSidebar({ isOpen, onClose, withHeader = false }: { isOpen: boolean; onClose: () => void; withHeader?: boolean }) {
     const router = useRouter();
     const supabase = createClient();
-    const [role, setRole] = useState<string>("no_access");
+    const [role, setRole] = useState<string>("inactive");
+    const [expiryDate, setExpiryDate] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         const fetchRole = async () => {
@@ -20,10 +21,13 @@ export default function AppSidebar({ isOpen, onClose, withHeader = false }: { is
             if (session) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('role')
+                    .select('role, access_expires_at')
                     .eq('id', session.user.id)
                     .single();
-                if (profile) setRole(profile.role);
+                if (profile) {
+                    setRole(profile.role);
+                    setExpiryDate(profile.access_expires_at);
+                }
             }
         };
         fetchRole();
@@ -50,6 +54,7 @@ export default function AppSidebar({ isOpen, onClose, withHeader = false }: { is
     return (
         <Sidebar
             role={role}
+            expiryDate={expiryDate}
             googleSignIn={googleSignIn}
             handleSignOut={handleSignOut}
             isOpen={isOpen}
