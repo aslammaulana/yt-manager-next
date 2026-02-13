@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LayoutDashboard, Mail, AlertCircle, User, Phone, CheckCircle } from "lucide-react";
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -79,23 +80,28 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0f0f0f] text-white flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-[#1e1e1e] border border-gray-800 rounded-2xl p-8 shadow-2xl">
+        <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 relative">
+            {/* Theme Toggle */}
+            <div className="absolute top-5 right-5 z-50">
+                <ThemeToggle />
+            </div>
+
+            <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl">
                 {/* Logo */}
                 <div className="flex justify-center mb-6">
-                    <div className="p-4 bg-[#155dfc]/10 rounded-full text-[#5b9aff]">
+                    <div className="p-4 bg-primary/10 rounded-full text-primary">
                         <LayoutDashboard size={48} />
                     </div>
                 </div>
 
                 <h1 className="text-3xl font-bold text-center mb-2">Buat Akun</h1>
-                <p className="text-gray-400 text-center mb-6">Daftar untuk mengelola YouTube Channel Anda</p>
+                <p className="text-muted-foreground text-center mb-6">Daftar untuk mengelola YouTube Channel Anda</p>
 
                 {/* Message */}
                 {msg && (
                     <div className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm border ${msg.type === 'success'
                         ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                        : 'bg-red-500/10 text-red-400 border-red-500/30'
+                        : 'bg-destructive/10 text-destructive border-destructive/30'
                         }`}>
                         {msg.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
                         {msg.text}
@@ -106,49 +112,49 @@ export default function SignupPage() {
                 <form onSubmit={handleSignup} className="space-y-4">
                     {/* Full Name */}
                     <div>
-                        <label className="block text-sm text-gray-400 mb-2">Nama Lengkap <span className="text-red-400">*</span></label>
+                        <label className="block text-sm text-muted-foreground mb-2">Nama Lengkap <span className="text-destructive">*</span></label>
                         <div className="relative">
                             <input
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                                 placeholder="John Doe"
-                                className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-cyan-500 focus:outline-none transition"
+                                className="w-full bg-background border border-input rounded-lg px-4 py-3 pl-10 focus:border-primary focus:outline-none transition"
                                 required
                             />
-                            <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         </div>
                     </div>
 
                     {/* Email */}
                     <div>
-                        <label className="block text-sm text-gray-400 mb-2">Alamat Email <span className="text-red-400">*</span></label>
+                        <label className="block text-sm text-muted-foreground mb-2">Alamat Email <span className="text-destructive">*</span></label>
                         <div className="relative">
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-cyan-500 focus:outline-none transition"
+                                className="w-full bg-background border border-input rounded-lg px-4 py-3 pl-10 focus:border-primary focus:outline-none transition"
                                 required
                             />
-                            <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         </div>
                     </div>
 
                     {/* WhatsApp */}
                     <div>
-                        <label className="block text-sm text-gray-400 mb-2">No. WhatsApp <span className="text-red-400">*</span></label>
+                        <label className="block text-sm text-muted-foreground mb-2">No. WhatsApp <span className="text-destructive">*</span></label>
                         <div className="relative">
                             <input
                                 type="tel"
                                 value={whatsapp}
                                 onChange={(e) => setWhatsapp(e.target.value)}
                                 placeholder="08123456789"
-                                className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-cyan-500 focus:outline-none transition"
+                                className="w-full bg-background border border-input rounded-lg px-4 py-3 pl-10 focus:border-primary focus:outline-none transition"
                                 required
                             />
-                            <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         </div>
                     </div>
 
@@ -157,11 +163,11 @@ export default function SignupPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-[#155dfc] hover:bg-[#407bfa] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                        className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
                     >
                         {loading ? (
                             <>
-                                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>
                                 Mendaftar...
                             </>
                         ) : (
@@ -169,15 +175,15 @@ export default function SignupPage() {
                         )}
                     </button>
 
-                    <p className="text-center text-sm text-gray-500">
+                    <p className="text-center text-sm text-muted-foreground">
                         Sudah punya akun?{' '}
-                        <Link href="/login" className="text-cyan-400 hover:underline">
+                        <Link href="/login" className="text-primary hover:underline">
                             Login
                         </Link>
                     </p>
                 </form>
 
-                <p className="mt-8 text-xs text-gray-500 text-center">
+                <p className="mt-8 text-xs text-muted-foreground text-center">
                     By signing up, you agree to our Terms of Service & Privacy Policy.
                 </p>
             </div>

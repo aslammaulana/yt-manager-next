@@ -2,9 +2,10 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Zap, Mail, AlertCircle, User, Phone, CheckCircle, Clock, Shield } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { User, Mail, Phone, LogOut, Check, Hash, AlertCircle, CheckCircle } from "lucide-react";
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -16,60 +17,94 @@ export default function CheckoutTrialPage() {
 
     // UI State
     const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Form State
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [whatsapp, setWhatsapp] = useState("");
+    const [agreed, setAgreed] = useState(false);
 
     // Default password for all new users
     const DEFAULT_PASSWORD = "1234567890";
 
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUser(user);
+                setEmail(user.email || "");
+                setFullName(user.user_metadata?.full_name || "");
+                setWhatsapp(user.user_metadata?.whatsapp || "");
+            }
+        };
+        getUser();
+    }, [supabase]);
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        setFullName("");
+        setEmail("");
+        setWhatsapp("");
+        router.refresh();
+    };
+
     const handleTrial = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setMsg(null);
 
-        // Validation
-        if (!fullName.trim()) {
-            setMsg({ type: 'error', text: 'Nama lengkap wajib diisi' });
-            setLoading(false);
+        if (!agreed) {
+            setMsg({ type: 'error', text: "Anda harus menyetujui Syarat & Ketentuan" });
             return;
         }
 
-        if (!whatsapp.trim()) {
-            setMsg({ type: 'error', text: 'No. WhatsApp wajib diisi' });
+        setLoading(true);
+
+        // Validation
+        if (!fullName.trim() || !email.trim() || !whatsapp.trim()) {
+            setMsg({ type: 'error', text: "Semua data wajib diisi" });
             setLoading(false);
             return;
         }
 
         try {
-            // 1. Create user via server API (auto-confirms email)
-            const res = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            // If user is already logged in, we might just update or proceed
+            // reusing the logic from the original file which assumes signup:
+
+            if (!user) {
+                // 1. Create user via server API (auto-confirms email)
+                const res = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        password: DEFAULT_PASSWORD,
+                        full_name: fullName,
+                        whatsapp,
+                    }),
+                });
+
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error);
+
+                // 2. Auto-login langsung setelah signup berhasil
+                const { error: loginError } = await supabase.auth.signInWithPassword({
                     email,
                     password: DEFAULT_PASSWORD,
-                    full_name: fullName,
-                    whatsapp,
-                }),
-            });
+                });
 
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.error);
-
-            // 2. Auto-login langsung setelah signup berhasil
-            const { error: loginError } = await supabase.auth.signInWithPassword({
-                email,
-                password: DEFAULT_PASSWORD,
-            });
-
-            if (loginError) throw loginError;
+                if (loginError) throw loginError;
+            } else {
+                // User already logged in - maybe update metadata or just redirect?
+                // For now, let's assume we just redirect as they already have an account.
+                // Or we could update their phone number if changed.
+            }
 
             // 3. Redirect ke dashboard
-            router.push('/dashboard');
+            setMsg({ type: 'success', text: "Checkout berhasil! Mengalihkan..." });
+            setTimeout(() => router.push('/dashboard'), 1000);
 
         } catch (error: any) {
             setMsg({ type: 'error', text: error.message });
@@ -79,134 +114,203 @@ export default function CheckoutTrialPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0f0f0f] text-white flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Trial Badge */}
-                <div className="flex justify-center mb-6">
-                    <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-4 py-2 rounded-full border border-yellow-500/30 text-sm font-semibold">
-                        <Zap size={16} />
-                        Free Trial — 2 Hari Akses Penuh
+        <div className="min-h-screen bg-background text-foreground flex flex-col items-center py-10 px-4 relative">
+
+            {/* Theme Toggle */}
+            <div className="absolute top-5 right-5 z-50">
+                <ThemeToggle />
+            </div>
+
+            {/* Header Brand */}
+            <div className="mb-8 text-center">
+                <h1 className="text-2xl font-bold tracking-tight">Bang Memed YT Manager</h1>
+            </div>
+
+            <div className="w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+
+                {/* Check Out Header */}
+                <div className="bg-muted/30 border-b border-border p-6 flex justify-between items-center">
+                    <h2 className="text-xl font-bold tracking-widest">CHECKOUT</h2>
+                    <div className="bg-primary/10 text-primary p-2 rounded-md">
+                        <Hash size={20} />
                     </div>
                 </div>
 
-                <div className="bg-[#1e1e1e] border border-gray-800 rounded-2xl p-8 shadow-2xl">
-                    {/* Header */}
-                    <h1 className="text-3xl font-bold text-center mb-2">Mulai Trial Gratis</h1>
-                    <p className="text-gray-400 text-center mb-6">Coba semua fitur selama 2 hari tanpa biaya</p>
+                <div className="p-6 sm:p-8 space-y-8">
 
-                    {/* Benefits */}
-                    <div className="bg-[#0f0f0f] border border-gray-800 rounded-xl p-4 mb-6 space-y-3">
-                        <div className="flex items-center gap-3 text-sm">
-                            <CheckCircle size={16} className="text-green-400 shrink-0" />
-                            <span className="text-gray-300">Akses penuh ke semua fitur dashboard</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                            <CheckCircle size={16} className="text-green-400 shrink-0" />
-                            <span className="text-gray-300">Kelola channel YouTube tanpa batas</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                            <Clock size={16} className="text-yellow-400 shrink-0" />
-                            <span className="text-gray-300">Masa trial 2 hari dari pendaftaran</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                            <Shield size={16} className="text-blue-400 shrink-0" />
-                            <span className="text-gray-300">Tidak perlu kartu kredit</span>
-                        </div>
-                    </div>
-
-                    {/* Message */}
-                    {msg && (
-                        <div className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm border ${msg.type === 'success'
-                            ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                            : 'bg-red-500/10 text-red-400 border-red-500/30'
-                            }`}>
-                            {msg.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                            {msg.text}
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleTrial} className="space-y-4">
-                        {/* Full Name */}
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Nama Lengkap <span className="text-red-400">*</span></label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    placeholder="John Doe"
-                                    className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-yellow-500 focus:outline-none transition"
-                                    required
-                                />
-                                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    {/* 1. DETAIL PESANAN */}
+                    <section>
+                        <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4 tracking-wider">[1. DETAIL PESANAN]</h3>
+                        <div className="space-y-3 bg-muted/20 p-5 rounded-lg border border-border/50">
+                            <div className="flex justify-between items-center border-b border-dashed border-border/50 pb-2">
+                                <span className="text-muted-foreground">Produk</span>
+                                <span className="font-semibold">Trial Membership</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-dashed border-border/50 pb-2">
+                                <span className="text-muted-foreground">Harga</span>
+                                <span className="font-semibold text-green-500">Gratis</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-dashed border-border/50 pb-2">
+                                <span className="text-muted-foreground">Tipe Membership</span>
+                                <span className="font-medium bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">Trial</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Masa Aktif Akun</span>
+                                <span className="font-semibold">2 Hari</span>
                             </div>
                         </div>
+                    </section>
 
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Alamat Email <span className="text-red-400">*</span></label>
-                            <div className="relative">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
-                                    className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-yellow-500 focus:outline-none transition"
-                                    required
-                                />
-                                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <form onSubmit={handleTrial}>
+
+                        {/* Error/Success Message */}
+                        {msg && (
+                            <div className={`flex items-center gap-3 p-4 rounded-lg mb-6 text-sm border ${msg.type === 'success'
+                                ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                : 'bg-destructive/10 text-destructive border-destructive/20'
+                                }`}>
+                                {msg.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                                {msg.text}
                             </div>
-                        </div>
+                        )}
 
-                        {/* WhatsApp */}
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">No. WhatsApp <span className="text-red-400">*</span></label>
-                            <div className="relative">
-                                <input
-                                    type="tel"
-                                    value={whatsapp}
-                                    onChange={(e) => setWhatsapp(e.target.value)}
-                                    placeholder="08123456789"
-                                    className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 pl-10 focus:border-yellow-500 focus:outline-none transition"
-                                    required
-                                />
-                                <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        {/* 2. DETAIL AKUN */}
+                        <section className="mb-8">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">[2. DETAIL AKUN]</h3>
+                                {user ? (
+                                    <button type="button" onClick={handleSignOut} className="text-xs flex items-center gap-1 text-destructive hover:underline">
+                                        <LogOut size={12} /> Keluar
+                                    </button>
+                                ) : (
+                                    <Link href="/login" className="text-xs flex items-center gap-1 text-primary hover:underline">
+                                        Sudah punya akun? Masuk
+                                    </Link>
+                                )}
                             </div>
-                        </div>
 
-                        {/* Submit */}
+                            <div className="space-y-4">
+                                {/* Name */}
+                                <div className="relative group">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 border-r border-border h-full flex items-center justify-start text-muted-foreground">
+                                        <User size={16} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="Nama Lengkap"
+                                        className="w-full bg-background border border-input rounded-lg py-3 pl-14 pr-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
+                                        required
+                                        readOnly={!!user}
+                                    />
+                                </div>
+
+                                {/* Email */}
+                                <div className="space-y-1">
+                                    <div className="relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 border-r border-border h-full flex items-center justify-start text-muted-foreground">
+                                            <Mail size={16} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="Alamat Email"
+                                            className="w-full bg-background border border-input rounded-lg py-3 pl-14 pr-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all disabled:opacity-70"
+                                            required
+                                            readOnly={!!user}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground ml-1">* Email harus aktif (disarankan menggunakan gmail)</p>
+                                </div>
+
+                                {/* Phone */}
+                                <div className="relative group">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 border-r border-border h-full flex items-center justify-start text-muted-foreground">
+                                        <Phone size={16} />
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        value={whatsapp}
+                                        onChange={(e) => setWhatsapp(e.target.value)}
+                                        placeholder="Nomor WhatsApp (Contoh: 628...)"
+                                        className="w-full bg-background border border-input rounded-lg py-3 pl-14 pr-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
+                                        required
+                                        readOnly={!!user && !!user.user_metadata?.whatsapp}
+                                    />
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 3. SYARAT DAN KETENTUAN */}
+                        <section className="mb-8">
+                            <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4 tracking-wider">[3. SYARAT DAN KETENTUAN]</h3>
+
+                            <div className="bg-muted/30 border border-border rounded-lg p-4 h-32 overflow-y-auto text-sm text-muted-foreground mb-4 custom-scrollbar">
+                                <p className="font-semibold mb-2">1. Jenis Lisensi Penggunaan</p>
+                                <p className="mb-2">1.1 Lisensi Trial: Bersifat gratis dan terbatas untuk penggunaan fitur dasar selama masa percobaan.</p>
+                                <ul className="list-disc pl-5 space-y-1 mb-2">
+                                    <li>Durasi penggunaan versi trial adalah 2 hari kalender.</li>
+                                    <li>Pengguna dilarang menyalahgunakan layanan untuk tindakan ilegal.</li>
+                                    <li>Kami berhak menghentikan akses jika ditemukan pelanggaran.</li>
+                                </ul>
+                                <p className="mb-2">2. Data & Privasi</p>
+                                <p>Kami menjaga kerahasiaan data Anda sesuai dengan Kebijakan Privasi yang berlaku.</p>
+                            </div>
+
+                            <label className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${agreed ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground bg-background'}`}>
+                                    {agreed && <Check size={14} />}
+                                    <input
+                                        type="checkbox"
+                                        checked={agreed}
+                                        onChange={(e) => setAgreed(e.target.checked)}
+                                        className="hidden"
+                                    />
+                                </div>
+                                <span className="text-sm font-medium group-hover:text-foreground transition-colors">YA, Saya telah membaca dan menyetujui syarat & ketentuan</span>
+                            </label>
+                        </section>
+
+                        {/* 4. RINGKASAN */}
+                        <section className="mb-8">
+                            <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4 tracking-wider">[4. RINGKASAN]</h3>
+                            <div className="border-t-2 border-dashed border-border py-4 space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span>Gratis</span>
+                                </div>
+                                <div className="flex justify-between items-center text-lg font-bold">
+                                    <span>TOTAL</span>
+                                    <span className="text-primary">GRATIS</span>
+                                </div>
+                            </div>
+                            <div className="border-b-2 border-dashed border-border w-full mb-2" />
+                        </section>
+
+                        {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3.5 rounded-lg transition flex items-center justify-center gap-2 text-base shadow-lg shadow-yellow-500/20"
+                            disabled={loading || !agreed}
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-xl text-lg uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/40 active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-1 group"
                         >
                             {loading ? (
-                                <>
-                                    <span className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full"></span>
-                                    Memproses...
-                                </>
+                                <span className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
                             ) : (
                                 <>
-                                    <Zap size={18} />
-                                    Mulai Trial Gratis
+                                    <span>ORDER SEKARANG</span>
+                                    <span className="text-[10px] font-normal normal-case opacity-80 group-hover:opacity-100">Proses aktivasi otomatis instan</span>
                                 </>
                             )}
                         </button>
-
-                        <p className="text-center text-sm text-gray-500">
-                            Sudah punya akun?{' '}
-                            <Link href="/login" className="text-cyan-400 hover:underline">
-                                Login
-                            </Link>
-                        </p>
                     </form>
                 </div>
-
-                <p className="mt-6 text-xs text-gray-600 text-center">
-                    Dengan mendaftar, Anda menyetujui Syarat & Ketentuan serta Kebijakan Privasi kami.
-                </p>
             </div>
+
+            <p className="mt-8 text-sm text-muted-foreground">
+                Copyright © 2024 - Bang Memed YT Manager
+            </p>
         </div>
     );
 }
