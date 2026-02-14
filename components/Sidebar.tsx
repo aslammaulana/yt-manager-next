@@ -134,7 +134,7 @@ export default function Sidebar({
                     <div className="flex-1 overflow-y-auto sidebar-scroll-area p-4 space-y-6 bg-card rounded-none md:rounded-tl-lg md:rounded-tr-lg">
 
 
-                        
+
 
                         {expiryDate && role !== 'admin' && role !== 'inactive' && (
                             <div className=" ">
@@ -164,6 +164,7 @@ export default function Sidebar({
                             <MenuItem href="/account/settings" icon={Settings} label="Pengaturan" />
                             <MenuItem href="/account/transactions" icon={CreditCard} label="Transaksi" />
                             <MenuItem href="/account/activity" icon={ClockPlus} label="Kelola Aktifitas" />
+                            <MenuItem href="/pricing" icon={CreditCard} label="Pricing" />
                         </div>
 
                         {/* ADMIN */}
@@ -171,6 +172,7 @@ export default function Sidebar({
                             <div className="space-y-1 ">
                                 <h3 className="text-[12px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Admin</h3>
                                 <MenuItem href="/dashboard/admin" icon={Shield} label="Kelola Users" />
+                                <MenuItem href="/dashboard/admin/transactions" icon={CreditCard} label="Kelola Pesanan" />
                             </div>
                         )}
 

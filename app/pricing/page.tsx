@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import DesktopHeader from "@/components/DesktopHeader";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
+import { useRouter } from "next/navigation";
 import { Check, Shield, Zap, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -13,10 +14,12 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 export default function PricingPage() {
+    const router = useRouter();
     const supabase = createClient();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingButtonId, setLoadingButtonId] = useState<number | null>(null);
 
     useEffect(() => {
         const getUser = async () => {
@@ -81,6 +84,47 @@ export default function PricingPage() {
         }
     ];
 
+    const handleSelectPlan = async (plan: any, index: number) => {
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        if (confirm(`Lanjutkan pembelian paket ${plan.name}?`)) {
+            setLoadingButtonId(index); // Set loading for this button
+            try {
+                // Parse price "15.000" -> 15000
+                const amount = parseInt(plan.price.replace(/\./g, ''));
+
+                // Determine duration in days
+                let durationDays = 30;
+                if (plan.duration.includes('2 bulan')) durationDays = 60;
+                if (plan.duration.includes('3 bulan')) durationDays = 90;
+
+                const res = await fetch('/api/transactions/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productName: plan.name,
+                        amount: amount,
+                        durationDays: durationDays
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    router.push('/account/transactions');
+                } else {
+                    alert('Gagal membuat transaksi: ' + result.error);
+                }
+            } catch (err: any) {
+                alert('Terjadi kesalahan: ' + err.message);
+            } finally {
+                setLoadingButtonId(null); // Reset loading state
+            }
+        }
+    };
+
     return (
         <div className="relative z-1 min-h-screen bg-background text-foreground">
             {/* --- LAYOUT HEADER & SIDEBAR --- */}
@@ -131,15 +175,17 @@ export default function PricingPage() {
                                         ))}
                                     </ul>
 
-                                    <Link
-                                        href={plan.link}
+                                    <button
+                                        onClick={() => handleSelectPlan(plan, index)}
+                                        disabled={loadingButtonId === index}
                                         className={`w-full py-3 px-4 rounded-xl text-center text-sm font-semibold transition-all active:scale-[0.98] ${plan.recommended
-                                                ? 'bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-md hover:shadow-lg'
-                                                : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
-                                            }`}
+                                            ? 'bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-md hover:shadow-lg'
+                                            : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
+                                            } ${loadingButtonId === index ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`
+                                        }
                                     >
-                                        Pilih Paket
-                                    </Link>
+                                        {loadingButtonId === index ? 'Memproses...' : 'Pilih Paket'}
+                                    </button>
                                 </div>
                             ))}
                         </div>

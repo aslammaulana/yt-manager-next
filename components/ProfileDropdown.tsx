@@ -12,9 +12,24 @@ interface ProfileDropdownProps {
 
 export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [dbRole, setDbRole] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const supabase = createClient();
+
+    // Fetch role from profiles table
+    useEffect(() => {
+        const fetchRole = async () => {
+            if (!user?.id) return;
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+            if (profile) setDbRole(profile.role);
+        };
+        fetchRole();
+    }, [user?.id]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -55,7 +70,7 @@ export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps)
                             <div className="flex items-center gap-2">
                                 <span className="font-semibold text-sm truncate text-foreground">{displayName}</span>
                                 {(() => {
-                                    const role = user?.profile?.role || user?.user_metadata?.role || 'member';
+                                    const role = dbRole || user?.user_metadata?.role || 'member';
                                     const roleStyles = {
                                         admin: "text-[#101929] dark:text-[#ffffff]/90 bg-blue-500/10 border-blue-500/50",
                                         member: "text-[#101929] dark:text-[#ffffff]/90 bg-green-500/10 border-green-500/50",
