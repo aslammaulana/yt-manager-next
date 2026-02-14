@@ -73,16 +73,37 @@ export default function SettingsPage() {
         setSavingProfile(true);
 
         try {
+            // 1. Update Auth Metadata (for Header/Dropdown)
+            const { error: authError } = await supabase.auth.updateUser({
+                data: { full_name: fullName }
+            });
+            if (authError) throw authError;
+
+            // 2. Update Profiles Table
             const { error } = await supabase
                 .from('profiles')
                 .update({
                     full_name: fullName,
-                    whatsapp: whatsapp,
-                    updated_at: new Date().toISOString()
+                    whatsapp: whatsapp
                 })
                 .eq('id', user.id);
 
             if (error) throw error;
+
+            // 3. Update Local State immediately
+            setUser((prev: any) => ({
+                ...prev,
+                user_metadata: {
+                    ...prev?.user_metadata,
+                    full_name: fullName
+                },
+                profile: {
+                    ...prev?.profile,
+                    full_name: fullName,
+                    whatsapp: whatsapp
+                }
+            }));
+
             setMessage({ type: 'success', text: 'Profil berhasil diperbarui.' });
         } catch (err: any) {
             setMessage({ type: 'error', text: err.message });
@@ -200,8 +221,8 @@ export default function SettingsPage() {
                         <div className="space-y-8">
                             {message && (
                                 <div className={`flex items-center gap-2 p-4 rounded-lg border ${message.type === 'success'
-                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
                                     }`}>
                                     {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
                                     <span className="text-sm font-medium">{message.text}</span>

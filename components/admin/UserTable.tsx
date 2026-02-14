@@ -64,9 +64,10 @@ const UserTable: React.FC<UserTableProps> = ({ profiles, loading, updating, upda
                                 >
                                     <div className="flex flex-col gap-1 items-start cursor-pointer hover:opacity-80 transition-opacity">
                                         <RoleBadge role={user.role} />
-                                        {user.access_expires_at && (user.role === 'member' || user.role === 'trial') && (
-                                            <span className="text-[10px] text-muted-foreground">
-                                                Exp: {new Date(user.access_expires_at).toLocaleString()}
+                                        {user.access_expires_at && (user.role === 'member' || user.role === 'trial' || user.role === 'inactive') && (
+                                            <span className={`text-[10px] ${user.role === 'inactive' ? 'text-muted-foreground ' : 'text-muted-foreground'}`}>
+                                                {user.role === 'inactive' ? 'Last Exp: ' : 'Exp: '}
+                                                {new Date(user.access_expires_at).toLocaleString()}
                                             </span>
                                         )}
                                     </div>

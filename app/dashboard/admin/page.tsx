@@ -121,6 +121,48 @@ export default function AdminPage() {
         }
     };
 
+    // Auto-Expire Logic
+    useEffect(() => {
+        if (profiles.length === 0) return;
+
+        const checkAndExpireUsers = async () => {
+            const now = new Date();
+            const expiredUsers = profiles.filter(p =>
+                (p.role === 'member' || p.role === 'trial') &&
+                p.access_expires_at &&
+                new Date(p.access_expires_at) < now
+            );
+
+            if (expiredUsers.length > 0) {
+                console.log(`Found ${expiredUsers.length} expired users. Auto-expiring...`);
+
+                // Process singly or bulk? For now singly to reuse API, or I can create a bulk endpoint.
+                // Given the API structure, likely single calls.
+                // But better to just call the API for each.
+
+                for (const user of expiredUsers) {
+                    try {
+                        await fetch('/api/admin/profiles', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: user.id,
+                                newRole: 'inactive',
+                                access_expires_at: user.access_expires_at // Keep the expiry date as "last seen"
+                            }),
+                        });
+                    } catch (err) {
+                        console.error("Failed to auto-expire user", user.id, err);
+                    }
+                }
+                // Refresh profiles after expiring
+                fetchProfiles();
+            }
+        };
+
+        checkAndExpireUsers();
+    }, [profiles.length]); // Check when profiles changes (loaded)
+
     // Duration Options
     const durations = [
         { label: '2 Menit (Test)', value: 2 },

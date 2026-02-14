@@ -28,7 +28,7 @@ interface ChannelGridProps {
 
 const ChannelGrid: React.FC<ChannelGridProps> = ({ channels, loading, search, formatNumber, handleDelete, handleManagerOpen }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {loading && <div className="col-span-2 text-center py-8 text-muted-foreground">Loading data...</div>}
 
             {!loading && channels.map((ch, idx) => {
@@ -67,7 +67,7 @@ const ChannelGrid: React.FC<ChannelGridProps> = ({ channels, loading, search, fo
                                     <button onClick={() => handleManagerOpen(ch)} className="flex-1 bg-[#155dfc] hover:bg-[#155dfc]/90 text-white p-2 rounded-lg font-bold text-sm transition text-center shadow-lg shadow-blue-500/20 cursor-pointer">
                                         UPLOAD
                                     </button>
-                                    <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg flex items-center justify-center border border-border transition-colors cursor-pointer">
+                                    <Link href={`/dashboard/channel/videos?id=${ch.id}&email=${ch.emailSource}`} className="p-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg flex items-center justify-center border border-border transition-colors cursor-pointer">
                                         <Video size={18} />
                                     </Link>
                                 </>

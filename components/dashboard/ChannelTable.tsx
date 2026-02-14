@@ -29,7 +29,7 @@ const ChannelTable: React.FC<ChannelTableProps> = ({ channels, loading, search, 
     return (
         <div className="w-full overflow-x-auto">
             {/* This table style is for desktop mostly, but can scroll on mobile if forced */}
-            <table className=" w-full border-collapse">
+            <table className=" w-full border-collapse ">
                 <thead>
                     <tr>
                         <th className="px-6 py-4 text-left text-xs uppercase tracking-wider text-muted-foreground bg-background font-semibold">Channel Name</th>
@@ -79,7 +79,7 @@ const ChannelTable: React.FC<ChannelTableProps> = ({ channels, loading, search, 
                                             <Video size={16} /> <span className="text-xs">Lihat</span>
                                         </span>
                                     ) : (
-                                        <Link href={`/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#155dfc] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors inline-flex items-center gap-1" title="View Videos"
+                                        <Link href={`/dashboard/channel/videos?id=${ch.id}&email=${ch.emailSource}`} className="bg-[#155dfc]/10 text-[#155dfc] px-3 py-1 rounded-lg text-xs font-bold border border-[#155dfc]/20 cursor-pointer hover:bg-[#155dfc]/20 transition-colors inline-flex items-center gap-1" title="View Videos"
                                         > <Video size={14} /> <span className="text-xs">LIHAT</span>
                                         </Link>
                                     )}

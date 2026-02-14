@@ -34,7 +34,8 @@
   --card-foreground: #ffffff;
   --popover: #1a2234;
   --popover-foreground: #ffffff;
-  --primary: #155dfc; /* Keep brand color */
+  --primary: #155dfc;
+  /* Keep brand color */
   --primary-foreground: #ffffff;
   --secondary: #1e293b;
   --secondary-foreground: #ffffff;
@@ -80,20 +81,35 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+/* Container scrollbar */
+.sidebar-scroll-area::-webkit-scrollbar {
+  /* Kita lebarkan sedikit menjadi 7px (5px bar + 2px celah) */
+  width: 10px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+/* Scroll Bar */
+.sidebar-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3);
-  border-radius: 20px;
+/* Batang penggeser (Thumb) */
+.sidebar-scroll-area::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 0px;
+  
+  /* TRIK UTAMA: */
+  /* Tambahkan border transparan di sisi kanan sebesar 2px */
+  border-right: 5px solid transparent;
+  /* Pastikan background warna tidak masuk ke area border agar terlihat ada jarak */
+  background-clip: padding-box; 
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.5);
+/* Warna saat di-hover */
+.sidebar-scroll-area:hover::-webkit-scrollbar-thumb {
+  background-color: #cbd5e185;
+}
+
+/* Dark mode */
+.dark .sidebar-scroll-area:hover::-webkit-scrollbar-thumb {
+  background-color: #374151;
 }

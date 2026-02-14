@@ -20,7 +20,7 @@ export default function MembershipCountdown({ expiryDate }: CountdownProps) {
                 const minutes = Math.floor((difference / 1000 / 60) % 60);
                 const seconds = Math.floor((difference / 1000) % 60);
 
-                return `${days} Hari, ${hours} Jam, ${minutes} Mnt, ${seconds} Dtk`;
+                return `${days} D, ${hours} H, ${minutes} Mnt, ${seconds} Sec`;
             }
             return "EXPIRED";
         };
@@ -41,20 +41,19 @@ export default function MembershipCountdown({ expiryDate }: CountdownProps) {
 
     if (timeLeft === "EXPIRED") {
         return (
-            <div className="px-4 py-3 mx-4 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <div className="text-xs font-bold text-red-500 flex items-center gap-2">
-                    <Clock size={14} /> Membership Expired
+            <div className="  bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div className="text-xs font-bold text-red-500 flex items-center gap-2"> Membership Expired
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="px-4 py-2 mx-4 mb-4 bg-[#1566fd]/10 border border-[#1566fd]/40 rounded-lg">
-            <div className="text-[10px] text-foreground/60 font-medium uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Clock size={12} /> Remaining:
+        <div className="px-4 py-2 bg-[#1566fd]/10 border border-[#1566fd2c] rounded-lg">
+            <div className="text-[10px] text-foreground/60 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                Remaining:
             </div>
-            <div className="text-[12px] font-semibold text-foreground/90 pl-4">
+            <div className="text-[12px] font-semibold text-foreground/90 ">
                 {timeLeft}
             </div>
         </div>

@@ -59,9 +59,10 @@ const UserCard: React.FC<UserCardProps> = ({ profiles, loading, updating, update
                     {/* Role Badge */}
                     <div className="flex items-center gap-2 px-4 justify-between">
                         <RoleBadge role={user.role} />
-                        {user.access_expires_at && (user.role === 'member' || user.role === 'trial') && (
-                            <span className="text-[10px] text-muted-foreground text-right">
-                                Exp: {new Date(user.access_expires_at).toLocaleDateString()}
+                        {user.access_expires_at && (user.role === 'member' || user.role === 'trial' || user.role === 'inactive') && (
+                            <span className={`text-[10px] text-right ${user.role === 'inactive' ? 'text-red-400' : 'text-muted-foreground'}`}>
+                                {user.role === 'inactive' ? 'Last Exp: ' : 'Exp: '}
+                                {new Date(user.access_expires_at).toLocaleDateString()}
                             </span>
                         )}
                     </div>

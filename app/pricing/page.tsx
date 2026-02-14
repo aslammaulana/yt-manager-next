@@ -1,76 +1,159 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle, Shield, Crown } from "lucide-react";
+import DesktopHeader from "@/components/DesktopHeader";
+import AppSidebar from "@/components/AppSidebar";
+import MobileHeader from "@/components/MobileHeader";
+import { Check, Shield, Zap, Star } from "lucide-react";
+import Link from "next/link";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 export default function PricingPage() {
-    const router = useRouter();
     const supabase = createClient();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleSignOut = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
-    };
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Fetch profile logic similar to dashboard to ensure we have role
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                setUser({ ...session.user, profile });
+            }
+            setLoading(false);
+        };
+        getUser();
+    }, []);
+
+    const plans = [
+        {
+            name: "Member 1 Bulan",
+            price: "15.000",
+            duration: "/bulan",
+            features: [
+                "Akses Full Fitur",
+                "Unlimited Channel",
+                "Priority Support",
+                "Update Gratis"
+            ],
+            recommended: false,
+            color: "blue",
+            link: "/checkout/1-bulan"
+        },
+        {
+            name: "Member 2 Bulan",
+            price: "25.000",
+            duration: "/2 bulan",
+            features: [
+                "Hemat Rp 5.000",
+                "Akses Full Fitur",
+                "Unlimited Channel",
+                "Priority Support"
+            ],
+            recommended: true,
+            color: "indigo", // Premium look
+            link: "/checkout/2-bulan"
+        },
+        {
+            name: "Member 3 Bulan",
+            price: "35.000",
+            duration: "/3 bulan",
+            features: [
+                "Hemat Rp 10.000",
+                "Akses Full Fitur",
+                "Unlimited Channel",
+                "Priority Support"
+            ],
+            recommended: false,
+            color: "purple",
+            link: "/checkout/3-bulan"
+        }
+    ];
 
     return (
-        <div className="min-h-screen bg-[#0f0f0f] text-white flex flex-col items-center p-6 pt-20">
-            <div className="w-full max-w-4xl text-center">
-                <h1 className="text-4xl md:text-5xl font-extrabold mb-6">Access Restricted</h1>
-                <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-                    Your account currently has <span className="text-yellow-400 font-bold">No Access</span> role.
-                    <br />Please select a plan to activate your dashboard.
-                </p>
+        <div className="relative z-1 min-h-screen bg-background text-foreground">
+            {/* --- LAYOUT HEADER & SIDEBAR --- */}
+            <DesktopHeader user={user} />
+            <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} withHeader={true} />
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {/* Free / No Access Card */}
-                    <div className="bg-[#1e1e1e]/50 border border-gray-800 rounded-2xl p-8 flex flex-col opacity-75">
-                        <div className="flex items-center justify-center mb-4">
-                            <Shield size={32} className="text-gray-400" />
+            <div className="flex flex-col min-w-0 md:ml-[330px] md:pt-[72px] transition-all duration-300">
+                <MobileHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
+
+                <main className="p-6 md:p-10 w-full overflow-x-hidden flex flex-col items-center">
+
+                    <div className="max-w-4xl w-full space-y-8">
+                        <div className="text-center space-y-4 mb-12">
+                            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+                                Simple Pricing, <span className="text-primary">Powerful Results</span>
+                            </h1>
+                            <p className="text-muted-foreground max-w-2xl mx-auto">
+                                Pilih paket yang sesuai dengan kebutuhan Anda. Upgrade kapan saja untuk mendapatkan akses lebih lama dan hemat biaya.
+                            </p>
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">Visitor</h2>
-                        <div className="text-4xl font-bold mb-6">Free</div>
-                        <ul className="text-left space-y-3 mb-8 flex-1">
-                            <li className="flex items-center gap-2 text-gray-400"><CheckCircle size={16} /> Restricted Access</li>
-                            <li className="flex items-center gap-2 text-gray-400"><CheckCircle size={16} /> No Dashboard View</li>
-                        </ul>
-                        <button disabled className="btn ghost cursor-not-allowed w-full">Current Plan</button>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {plans.map((plan, index) => (
+                                <div
+                                    key={index}
+                                    className={`relative flex flex-col p-6 rounded-2xl border ${plan.recommended ? 'border-primary/50 shadow-xl scale-105 z-10 bg-card' : 'border-border bg-card shadow-sm'} transition-all hover:shadow-md`}
+                                >
+                                    {plan.recommended && (
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+                                            Most Popular
+                                        </div>
+                                    )}
+
+                                    <div className="mb-5">
+                                        <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                                        <div className="mt-4 flex items-baseline">
+                                            <span className="text-3xl font-bold tracking-tight">Rp {plan.price}</span>
+                                            {/* <span className="ml-1 text-sm font-medium text-muted-foreground">{plan.duration}</span> */}
+                                        </div>
+                                    </div>
+
+                                    <ul className="space-y-4 mb-8 flex-1">
+                                        {plan.features.map((feature, i) => (
+                                            <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                                                <Check className={`h-5 w-5 shrink-0 ${plan.recommended ? 'text-primary' : 'text-blue-500'}`} />
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <Link
+                                        href={plan.link}
+                                        className={`w-full py-3 px-4 rounded-xl text-center text-sm font-semibold transition-all active:scale-[0.98] ${plan.recommended
+                                                ? 'bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-md hover:shadow-lg'
+                                                : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
+                                            }`}
+                                    >
+                                        Pilih Paket
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Money Back / Secure Badge */}
+                        <div className="mt-16 text-center">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border text-xs text-muted-foreground">
+                                <Shield size={14} />
+                                <span>Secure Payment & Instant Activation</span>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Pro Plan */}
-                    <div className="bg-gradient-to-b from-[#1e1e1e] to-[#0f0f0f] border border-cyan-500/50 rounded-2xl p-8 flex flex-col relative transform hover:scale-105 transition duration-300 shadow-2xl shadow-cyan-500/10">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
-                        <div className="flex items-center justify-center mb-4">
-                            <Crown size={32} className="text-cyan-400" />
-                        </div>
-                        <h2 className="text-2xl font-bold mb-2 text-cyan-400">Pro Edition</h2>
-                        <div className="text-4xl font-bold mb-6">Rp 150K<span className="text-lg font-normal text-gray-500">/mo</span></div>
-                        <ul className="text-left space-y-3 mb-8 flex-1">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-cyan-400" /> Full Dashboard Access</li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-cyan-400" /> Unlimited Channel Sync</li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-cyan-400" /> Realtime 48h Analytics</li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-cyan-400" /> Bulk Manager Tools</li>
-                        </ul>
-                        <a
-                            href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20tertarik%20upgrade%20Plan%20Pro%20YT%20Manager"
-                            target="_blank"
-                            className="bg-[#155dfc] hover:bg-[#407bfa] text-white font-bold py-3 px-6 rounded-lg text-center transition flex items-center justify-center gap-2"
-                        >
-                            Contact Admin to Upgrade <ArrowRight size={16} />
-                        </a>
-                    </div>
-                </div>
-
-                <div className="mt-12 text-center">
-                    <p className="text-gray-500 text-sm mb-4">Already upgraded?</p>
-                    <button onClick={handleSignOut} className="text-red-400 hover:text-red-300 underline font-medium text-sm">
-                        Sign Out & Refund
-                    </button>
-                </div>
+                </main>
             </div>
         </div>
     );

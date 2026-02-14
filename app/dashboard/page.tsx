@@ -345,7 +345,7 @@ export default function Dashboard() {
             token: ch.access_token
         };
         sessionStorage.setItem("active_manager_data", JSON.stringify(sessionData));
-        window.open('/manager', '_blank');
+        window.open('/dashboard/channel/upload-video', '_blank');
     };
 
     // --- Effects ---
@@ -444,7 +444,7 @@ export default function Dashboard() {
 
 
 
-                    
+
 
                     {/* Search CARDS */}
                     <div className=" md:gap-5 mb-5 ">
@@ -484,7 +484,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* CHANNEL LIST */}
-                    <div className="bg-card border border-border rounded-lg backdrop-blur-md mt-5 shadow-[0_0px_5px_#02020210]">
+                    <div className="bg-card  rounded-lg backdrop-blur-md mt-5 ">
                         <div className="px-6 py-5 border-b border-border flex justify-between items-center">
                             <div className="text-lg font-bold">Channel List</div>
                             <div className="hidden md:flex gap-2">
@@ -496,28 +496,26 @@ export default function Dashboard() {
                                 </button>
                             </div>
                         </div>
-                        <div className="p-4">
-                            {/* Logic: 
-                                - Mobile always defaults to Grid/Card view because table is hard to read, UNLESS we want to force horizontal scroll. 
-                                  User request: "ketika memilih grid, maka akan table channel list akan berubah menjadi grid 2".
-                                  Let's respect the switch for Desktop. For mobile, it's already kind of a "grid" (col-1).
-                                  If layout is grid: show ChannelGrid.
-                                  If layout is table: show ChannelTable (hidden on mobile) AND ChannelGrid (visible on mobile only).
-                             */}
-
-                            {layout === 'grid' ? (
-                                <ChannelGrid
-                                    channels={channels}
-                                    loading={loading}
-                                    search={search}
-                                    formatNumber={formatNumber}
-                                    handleDelete={handleDelete}
-                                    handleManagerOpen={handleManagerOpen}
-                                />
+                        <div className=" bg-card rounded-bl-lg rounded-br-lg  border border-border px-6 py-5">
+                            {role === 'inactive' ? (
+                                <div className="w-full flex flex-col items-center justify-center p-8 text-center">
+                                    <div className="mx-auto w-16 h-16 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center mb-4">
+                                        <span className="text-3xl">🔒</span>
+                                    </div>
+                                    <h2 className="text-xl font-bold mb-2">Akses Terkunci</h2>
+                                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                        Masa aktif membership Anda telah berakhir. Harap perbarui paket langganan Anda untuk kembali mengakses dan mengelola channel YouTube Anda.
+                                    </p>
+                                    <Link
+                                        href="/pricing"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                                    >
+                                        Upgrade Membership
+                                    </Link>
+                                </div>
                             ) : (
                                 <>
-                                    {/* Mobile View (Always Card/Grid-1) when in Table mode */}
-                                    <div className="md:hidden">
+                                    {layout === 'grid' ? (
                                         <ChannelGrid
                                             channels={channels}
                                             loading={loading}
@@ -526,18 +524,32 @@ export default function Dashboard() {
                                             handleDelete={handleDelete}
                                             handleManagerOpen={handleManagerOpen}
                                         />
-                                    </div>
-                                    {/* Desktop View (Table) */}
-                                    <div className="hidden md:block">
-                                        <ChannelTable
-                                            channels={channels}
-                                            loading={loading}
-                                            search={search}
-                                            formatNumber={formatNumber}
-                                            handleDelete={handleDelete}
-                                            handleManagerOpen={handleManagerOpen}
-                                        />
-                                    </div>
+                                    ) : (
+                                        <>
+                                            {/* Mobile View (Always Card/Grid-1) when in Table mode */}
+                                            <div className="md:hidden">
+                                                <ChannelGrid
+                                                    channels={channels}
+                                                    loading={loading}
+                                                    search={search}
+                                                    formatNumber={formatNumber}
+                                                    handleDelete={handleDelete}
+                                                    handleManagerOpen={handleManagerOpen}
+                                                />
+                                            </div>
+                                            {/* Desktop View (Table) */}
+                                            <div className="hidden md:block">
+                                                <ChannelTable
+                                                    channels={channels}
+                                                    loading={loading}
+                                                    search={search}
+                                                    formatNumber={formatNumber}
+                                                    handleDelete={handleDelete}
+                                                    handleManagerOpen={handleManagerOpen}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                 </>
                             )}
                         </div>

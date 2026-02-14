@@ -28,7 +28,7 @@ export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps)
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
-        router.push('/login');
+        router.push('/auth/login');
     };
 
     const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
@@ -54,7 +54,22 @@ export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps)
                         <div className="flex flex-col min-w-0">
                             <div className="flex items-center gap-2">
                                 <span className="font-semibold text-sm truncate text-foreground">{displayName}</span>
-                                <span className="text-[10px] bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded border border-blue-500/20 font-medium">(Trial)</span>
+                                {(() => {
+                                    const role = user?.profile?.role || user?.user_metadata?.role || 'member';
+                                    const roleStyles = {
+                                        admin: "text-[#101929] dark:text-[#ffffff]/90 bg-blue-500/10 border-blue-500/50",
+                                        member: "text-[#101929] dark:text-[#ffffff]/90 bg-green-500/10 border-green-500/50",
+                                        trial: "text-[#101929] dark:text-[#ffffff]/90 bg-yellow-500/10 border-yellow-500/50",
+                                        inactive: "text-[#101929] dark:text-[#ffffff]/90 bg-red-500/10 border-red-500/50"
+                                    };
+                                    // @ts-ignore
+                                    const style = roleStyles[role] || roleStyles.member;
+                                    return (
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium capitalize ${style}`}>
+                                            {role}
+                                        </span>
+                                    );
+                                })()}
                             </div>
                             <span className="text-xs text-muted-foreground truncate">{email}</span>
                         </div>
@@ -63,7 +78,7 @@ export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps)
                     {/* Actions */}
                     <div className="p-1 flex flex-col gap-1">
                         <Link
-                            href="/settings"
+                            href="/account/settings"
                             className="flex items-center gap-2 px-3 py-2 text-sm text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
@@ -71,7 +86,7 @@ export default function ProfileDropdown({ user, trigger }: ProfileDropdownProps)
                         </Link>
                         <button
                             onClick={handleSignOut}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors text-left"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground/80 cursor-pointer hover:text-foreground hover:bg-muted rounded-md transition-colors text-left"
                         >
                             Keluar
                         </button>

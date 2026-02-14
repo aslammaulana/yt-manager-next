@@ -38,9 +38,9 @@ export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // 1. Dashboard, Admin, Settings Protection
-    if (path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/manager') || path.startsWith('/settings')) {
+    if (path.startsWith('/dashboard') || path.startsWith('/account')) {
         if (!user) {
-            return NextResponse.redirect(new URL('/login', request.url));
+            return NextResponse.redirect(new URL('/auth/login', request.url));
         }
 
         // Check Role
@@ -74,18 +74,18 @@ export async function middleware(request: NextRequest) {
         }
 
         // Redirect 'inactive' to Pricing (except settings - they can set password)
-        if (role === 'inactive' && !path.startsWith('/pricing') && !path.startsWith('/settings')) {
+        if (role === 'inactive' && !path.startsWith('/pricing') && !path.startsWith('/account/settings')) {
             return NextResponse.redirect(new URL('/pricing', request.url));
         }
 
         // Protect Admin Route
-        if (path.startsWith('/admin') && role !== 'admin') {
+        if (path.startsWith('/dashboard/admin') && role !== 'admin') {
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     }
 
     // 2. Redirect Authenticated Users away from Login/Signup/Checkout
-    if ((path === '/login' || path === '/signup' || path.startsWith('/checkout')) && user) {
+    if ((path === '/auth/login' || path === '/auth/signup' || path.startsWith('/checkout')) && user) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
